@@ -31,16 +31,19 @@ function EditarProducto(props) {
 		formData.append('imagen', archivo)
 		try {
 			const url = `/productos/${id}`
-			const actualizar = await clienteAxios.put(url, formData, {
-				headers: {
-					'Content-Type': 'multipart/form-data',
-					Authorization: `Bearer ${auth.token}`
+			const actualizar = await clienteAxios.put(url,
+				formData,
+				{
+					headers: {
+						'Content-Type': 'multipart/form-data',
+						Authorization: `Bearer ${auth.token}`
+					}
 				}
-			})
+			)
 			if(actualizar.status === 200) {
 				if(actualizar.data) {
 					if(actualizar.data.error) {
-						Toast('error', 'Ha ocurrido un error')
+						Toast('warning', 'No se ha podido actualizar')
 					} else {
 						Toast('success', actualizar.data.mensaje)
 						props.history.push('/productos')
@@ -54,11 +57,13 @@ function EditarProducto(props) {
 	useEffect(() => {
 		async function consultarAPI() {
 			const url = `/productos/${id}`
-			const obtenerProducto = await clienteAxios.get(url, {
-				headers: {
-					Authorization: `Bearer ${auth.token}`
+			const obtenerProducto = await clienteAxios.get(url,
+				{
+					headers: {
+						Authorization: `Bearer ${auth.token}`
+					}
 				}
-			})
+			)
 			guardarProducto(obtenerProducto.data)
 		}
 		consultarAPI()
@@ -89,11 +94,14 @@ function EditarProducto(props) {
                 </div>
                 <div className="campo">
                     <label>Imagen:</label>
-                    {imagen ? (
-                    	<img src={process.env.REACT_APP_BACKEND_URL + imagen} 
-                    		 alt="Imagen de producto" 
-                    		 width="300" />
-                   	) : null}
+					{
+						imagen ? (
+							<img src={process.env.REACT_APP_BACKEND_URL + imagen} 
+								alt="Imagen de producto" 
+								width="300" 
+							/>
+                   		) : null
+					}
                     <input type="file" name="imagen" 
                     	   onChange={leerArchivo}
                     />

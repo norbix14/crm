@@ -12,11 +12,13 @@ function Productos(props) {
 		if(auth.token !== '') {
 			async function consultarAPI() {
 				try {
-					const obtenerProductos = await clienteAxios.get('/productos', {
-						headers: {
-							Authorization: `Bearer ${auth.token}`
+					const obtenerProductos = await clienteAxios.get('/productos',
+						{
+							headers: {
+								Authorization: `Bearer ${auth.token}`
+							}
 						}
-					})
+					)
 					guardarProductos(obtenerProductos.data)
 				} catch(error) {
 					if(error.response) {
@@ -48,7 +50,7 @@ function Productos(props) {
 			            	<Producto producto={producto} key={producto._id} />
 		            	))}
 		            </ul>
-            	: <h2>Aún no hay productos agregados</h2>
+            	: 	<h2>Aún no hay productos agregados</h2>
             }
 	    </Fragment>
 	)

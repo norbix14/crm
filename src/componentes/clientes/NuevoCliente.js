@@ -28,18 +28,21 @@ function NuevoCliente(props) {
 	}
 	const agregarCliente = e => {
 		e.preventDefault()
-		clienteAxios.post('/clientes', cliente, {
-			headers: {
-				Authorization: `Bearer ${auth.token}`
+		clienteAxios.post('/clientes',
+			cliente,
+			{
+				headers: {
+					Authorization: `Bearer ${auth.token}`
+				}
 			}
-		})
+		)
 		.then(response => {
 			if(response.status === 200) {
 				if(response.data.error) {
 					if(response.data.error.code === 11000) {
-						Toast('error', 'Este email ya esta registrado')
+						Toast('warning', 'Este email ya esta registrado')
 					} else {
-						Toast('error', 'Hubo un error inesperado')
+						Toast('warning', 'No se ha podido agregar')
 					}
 				} else {
 					Toast('success', response.data.mensaje)
@@ -51,7 +54,7 @@ function NuevoCliente(props) {
 			Toast('error', 'Ha ocurrido un error')
 		})
 	}
-	if(!auth.auth && (localStorage.getItem('token') === auth.token)) {
+	if(!auth.auth) {
 		props.history.push('/iniciar-sesion')
 	}
 	return (
@@ -105,6 +108,4 @@ function NuevoCliente(props) {
 	)
 }
 
-// HighOrderComponent: funcion que toma un componente como parametro y retorna 
-// un nuevo componente
 export default withRouter(NuevoCliente)

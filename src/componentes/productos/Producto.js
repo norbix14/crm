@@ -22,15 +22,17 @@ function Producto({producto, history}) {
 		.then(resultado => {
 			if(resultado.value) {
 				const url = `/productos/${idProducto}`
-				clienteAxios.delete(url, {
-					headers: {
-						Authorization: `Bearer ${auth.token}`
+				clienteAxios.delete(url,
+					{
+						headers: {
+							Authorization: `Bearer ${auth.token}`
+						}
 					}
-				})
+				)
 				.then(response => {
 					if(response.status === 200) {
 						if(response.data.error) {
-							Toast('error', 'Hubo un error inesperado')
+							Toast('warning', 'No se ha podido eliminar')
 						} else {
 							Toast('success', response.data.mensaje)
 						}
@@ -42,7 +44,7 @@ function Producto({producto, history}) {
 			}
 		})
 	}
-	if(!auth.auth && (localStorage.getItem('token') === auth.token)) {
+	if(!auth.auth) {
         history.push('/iniciar-sesion')
     }
 	return (
@@ -50,10 +52,13 @@ function Producto({producto, history}) {
 		    <div className="info-producto">
 		        <p className="nombre">{nombre}</p>
 		        <p className="precio">${precio}.-</p>
-		        {imagen ? (
-		        	<img src={process.env.REACT_APP_BACKEND_URL + imagen} 
-		        		 alt="Imagen de producto" />
-		        ) : null}
+				{
+					imagen ? (
+						<img src={process.env.REACT_APP_BACKEND_URL + imagen} 
+							alt="Imagen de producto" 
+						/>
+		        	) : null
+				}
 		    </div>
 		    <div className="acciones">
 		        <Link to={"/productos/editar/" + _id} className="btn btn-azul">

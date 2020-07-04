@@ -12,11 +12,13 @@ function Clientes(props) {
 		if(auth.token !== '') {
 			async function consultarAPI() {
 				try {
-					const obtenerClientes = await clienteAxios.get('/clientes', {
-						headers: {
-							Authorization: `Bearer ${auth.token}`
+					const obtenerClientes = await clienteAxios.get('/clientes',
+						{
+							headers: {
+								Authorization: `Bearer ${auth.token}`
+							}
 						}
-					})
+					)
 					guardarClientes(obtenerClientes.data)
 				} catch(error) {
 					if(error.response) {
@@ -48,7 +50,7 @@ function Clientes(props) {
 							<Cliente key={cliente._id} cliente={cliente} />
 						))}
 					</ul>
-             : <h2>Aún no hay clientes dados de alta</h2>
+             	:	<h2>Aún no hay clientes dados de alta</h2>
          	}
 		</Fragment>
 	)

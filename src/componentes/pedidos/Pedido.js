@@ -22,15 +22,17 @@ function Pedido({pedido, history}) {
 		.then(resultado => {
 			if(resultado.value) {
 				const url = `/pedidos/${idPedido}`
-				clienteAxios.delete(url, {
-					headers: {
-						Authorization: `Bearer ${auth.token}`
+				clienteAxios.delete(url,
+					{
+						headers: {
+							Authorization: `Bearer ${auth.token}`
+						}
 					}
-				})
+				)
 				.then(response => {
 					if(response.status === 200) {
 						if(response.data.error) {
-							Toast('error', 'Hubo un error inesperado')
+							Toast('warning', 'No se ha podido eliminar')
 						} else {
 							Toast('success', response.data.mensaje)
 						}
@@ -42,7 +44,7 @@ function Pedido({pedido, history}) {
 			}
 		})
 	}
-	if(!auth.auth && (localStorage.getItem('token') === auth.token)) {
+	if(!auth.auth) {
         history.push('/iniciar-sesion')
     }
 	return (
@@ -53,13 +55,15 @@ function Pedido({pedido, history}) {
 		        <div className="articulos-pedido">
 		            <p className="productos">Artículos del pedido:</p>
 			            <ul>
-			            	{pedido.pedido.map(articulo => (
-				                <li key={pedido._id + articulo.producto._id}>
-				                    <p>Artículo: {articulo.producto.nombre}</p>
-				                    <p>Precio: ${articulo.producto.precio}.-</p>
-				                    <p>Cantidad: {articulo.cantidad}</p>
-				                </li>
-			            	))}
+							{
+								pedido.pedido.map(articulo => (
+									<li key={pedido._id + articulo.producto._id}>
+										<p>Artículo: {articulo.producto.nombre}</p>
+										<p>Precio: ${articulo.producto.precio}.-</p>
+										<p>Cantidad: {articulo.cantidad}</p>
+									</li>
+			            		))
+							}
 			            </ul>
 		        </div>
 		        <p className="total">Total: ${pedido.total}.-</p>

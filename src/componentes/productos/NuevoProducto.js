@@ -43,7 +43,7 @@ function NuevoProducto(props) {
 			if(nuevoProducto.status === 200) {
 				if(nuevoProducto.data) {
 					if(nuevoProducto.data.error) {
-						Toast('error', 'Ha ocurrido un error')
+						Toast('warning', 'No se ha podido agregar')
 					} else {
 						Toast('success', nuevoProducto.data.mensaje)
 						props.history.push('/productos')
@@ -54,7 +54,7 @@ function NuevoProducto(props) {
 			Toast('error', 'Ha ocurrido un error')
 		}
 	}
-	if(!auth.auth && (localStorage.getItem('token') === auth.token)) {
+	if(!auth.auth) {
 		props.history.push('/iniciar-sesion')
 	}
 	return (

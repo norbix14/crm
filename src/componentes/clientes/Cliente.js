@@ -22,15 +22,17 @@ function Cliente({cliente, history}) {
 		.then(resultado => {
 			if(resultado.value) {
 				const url = `/clientes/${idCliente}`
-				clienteAxios.delete(url, {
-					headers: {
-						Authorization: `Bearer ${auth.token}`
+				clienteAxios.delete(url,
+					{
+						headers: {
+							Authorization: `Bearer ${auth.token}`
+						}
 					}
-				})
+				)
 				.then(response => {
 					if(response.status === 200) {
 						if(response.data.error) {
-							Toast('error', 'Ha ocurrido un error')
+							Toast('warning', 'No se ha podido eliminar')
 						} else {
 							Toast('success', response.data.mensaje)
 						}
@@ -42,7 +44,7 @@ function Cliente({cliente, history}) {
 			}
 		})
 	}
-	if(!auth.auth && (localStorage.getItem('token') === auth.token)) {
+	if(!auth.auth) {
 		history.push('/iniciar-sesion')
 	}
 	return (

@@ -12,11 +12,13 @@ function Pedidos(props) {
 		if(auth.token !== '') {
 			async function consultarAPI() {
 				try {
-					const obtenerPedidos = await clienteAxios.get('/pedidos', {
-						headers: {
-							Authorization: `Bearer ${auth.token}`
+					const obtenerPedidos = await clienteAxios.get('/pedidos',
+						{
+							headers: {
+								Authorization: `Bearer ${auth.token}`
+							}
 						}
-					})
+					)
 					guardarPedidos(obtenerPedidos.data)
 				} catch(error) {
 					if(error.response.status === 500) {
@@ -42,7 +44,7 @@ function Pedidos(props) {
 				    		<Pedido pedido={pedido} key={pedido._id} />
 			    		))}
 			    	</ul>
-	    	: <h2>Aún no hay pedidos realizados</h2>
+	    		: 	<h2>Aún no hay pedidos realizados</h2>
 	    	}
 	    </Fragment>
 	)

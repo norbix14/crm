@@ -18,16 +18,17 @@ function NuevoPedido(props) {
         try {
             const url = `/productos/busqueda/${busqueda}`
             clienteAxios.post(url,
-            {
-                params: {
-                    query: busqueda
+                {
+                    params: {
+                        query: busqueda
+                    }
+                }, 
+                {
+                    headers: {
+                        Authorization: `Bearer ${auth.token}`
+                    }
                 }
-            }, 
-            {
-                headers: {
-                    Authorization: `Bearer ${auth.token}`
-                }
-            })
+            )
             .then(response => {
                 if(response.status === 200) {
                     if(response.data[0]) {
@@ -88,15 +89,18 @@ function NuevoPedido(props) {
             "total": total
         }
         const url = `/pedidos/nuevo/${id}`
-        const agregarPedido = await clienteAxios.post(url, pedido, {
-            headers: {
-                Authorization: `Bearer ${auth.token}`
+        const agregarPedido = await clienteAxios.post(url,
+            pedido,
+            {
+                headers: {
+                    Authorization: `Bearer ${auth.token}`
+                }
             }
-        })
+        )
         if(agregarPedido.status === 200) {
             if(agregarPedido.data) {
                 if(agregarPedido.data.error) {
-                    Toast('error', 'Ha ocurrido un error')
+                    Toast('warning', 'No se ha podido agregar')
                 } else {
                     Toast('success', agregarPedido.data.mensaje)
                     props.history.push('/pedidos')
@@ -110,17 +114,19 @@ function NuevoPedido(props) {
     useEffect(() => {
         async function consultarAPI() {
             const url = `/clientes/${id}`
-            const obtenerCliente = await clienteAxios.get(url, {
-                headers: {
-                    Authorization: `Bearer ${auth.token}`
+            const obtenerCliente = await clienteAxios.get(url,
+                {
+                    headers: {
+                        Authorization: `Bearer ${auth.token}`
+                    }
                 }
-            })
+            )
             guardarCliente(obtenerCliente.data)
         }
         consultarAPI()
         actualizarTotal()
     }, [id, actualizarTotal, auth.token])
-    if(!auth.auth && (localStorage.getItem('token') === auth.token)) {
+    if(!auth.auth) {
         props.history.push('/iniciar-sesion')
     }
 	return (
@@ -150,12 +156,14 @@ function NuevoPedido(props) {
                 ))}
             </ul>
             <p className="total">Total a pagar: <span>${total}.-</span></p>
-            {total > 0 ? (
-                <form onSubmit={realizarPedido}>
-                    <input type="submit" className="btn btn-verde btn-block" 
-                           value="Realizar el pedido" />
-                </form>
-            ) : null}
+            {
+                total > 0 ? (
+                    <form onSubmit={realizarPedido}>
+                        <input type="submit" className="btn btn-verde btn-block" 
+                            value="Realizar el pedido" />
+                    </form>
+                ) : null
+            }
 	    </Fragment>
 	)
 }

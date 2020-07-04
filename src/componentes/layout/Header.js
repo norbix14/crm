@@ -11,6 +11,8 @@ function Header(props) {
 			auth: false
 		})
 		localStorage.setItem('token', '')
+		localStorage.removeItem('token')
+		localStorage.clear()
 		Toast('success', 'Sesión cerrada. Vuelve cuando quieras!')
 		props.history.push('/iniciar-sesion')
 	}

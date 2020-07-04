@@ -30,21 +30,24 @@ function EditarCliente(props) {
 	const actualizarCliente = e => {
 		e.preventDefault()
 		const url = `/clientes/${cliente._id}`
-		clienteAxios.put(url, cliente, {
-			headers: {
-				Authorization: `Bearer ${auth.token}`
+		clienteAxios.put(url,
+			cliente,
+			{
+				headers: {
+					Authorization: `Bearer ${auth.token}`
+				}
 			}
-		})
+		)
 		.then(response => {
 			if(response.status === 200) {
 				if(response.data.error) {
 					if(response.data.error.code === 11000) {
-						Toast('error', 'Este email ya esta registrado')
+						Toast('warning', 'Este email ya esta registrado')
 					} else {
-						Toast('error', 'Hubo un error inesperado')
+						Toast('warning', 'Hubo un error inesperado')
 					}
 				} else {
-					Toast('Correcto', response.data.mensaje)
+					Toast('success', response.data.mensaje)
 					props.history.push('/')
 				}
 			}
@@ -58,11 +61,13 @@ function EditarCliente(props) {
 			async function consultarAPI() {
 				try {
 					const url = `/clientes/${id}`
-					const obtenerCliente = await clienteAxios.get(url, {
-						headers: {
-							Authorization: `Bearer ${auth.token}`
+					const obtenerCliente = await clienteAxios.get(url,
+						{
+							headers: {
+								Authorization: `Bearer ${auth.token}`
+							}
 						}
-					})
+					)
 					datosCliente(obtenerCliente.data)
 				} catch(error) {
 					if(error.response) {
