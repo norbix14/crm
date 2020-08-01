@@ -3,6 +3,7 @@ import { withRouter } from 'react-router-dom'
 import clienteAxios from '../../config/axios'
 import Pedido from './Pedido'
 import { CRMContext } from '../../context/CRMContext'
+import Toast from '../../helpers/Toast'
 
 function Pedidos(props) {
 	const [ pedidos, guardarPedidos ] = useState([])
@@ -19,11 +20,24 @@ function Pedidos(props) {
 							}
 						}
 					)
-					guardarPedidos(obtenerPedidos.data)
+                    if(obtenerPedidos.status === 200) {
+                        if(!obtenerPedidos.data.error) {
+                            guardarPedidos(obtenerPedidos.data.datos)
+                        } else {
+                            guardarPedidos([])
+                        }
+                    }
 				} catch(error) {
-					if(error.response.status === 500) {
-						props.history.push('/iniciar-sesion')			
-					}
+                    if(error.response) {
+                        if(error.response.data.status === 500) {
+                            // props.history.push('/iniciar-sesion')
+                            Toast('warning', error.response.data.mensaje)
+                        } else {
+                            Toast('warning', error.response.data.mensaje)
+                        }
+                    } else {
+                        Toast('error', 'Ha ocurrido un error')
+                    }
 				}
 			}
 			consultarAPI()

@@ -21,13 +21,17 @@ function Header(props) {
 		    <div className="contenedor">
 		    	<div className="contenido-barra">
 			        <h1>CRM - Administrador de Clientes</h1>
-			        {auth.auth ? (
-			    		<button type="button" className="btn btn-rojo"
-			    				onClick={cerrarSesion}>
-			    			<i className="far fa-times-circle"></i>
-			    			Cerrar sesión
-						</button>
-			        ) : null}
+			        {
+                        auth.auth ? (
+                            <button 
+                                type="button" 
+                                className="btn btn-rojo"
+                                onClick={cerrarSesion}>
+                                <i className="far fa-times-circle"></i>
+                                Cerrar sesión
+                            </button>
+			             ) : null
+                    }
 		    	</div>
 		    </div>
 		</header>

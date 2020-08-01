@@ -32,14 +32,18 @@ function Pedido({pedido, history}) {
 				.then(response => {
 					if(response.status === 200) {
 						if(response.data.error) {
-							Toast('warning', 'No se ha podido eliminar')
+							Toast('warning', response.data.mensaje)
 						} else {
 							Toast('success', response.data.mensaje)
 						}
 					}
 				})
 				.catch(err => {
-					Toast('error', 'Ha ocurrido un error')
+                    if(err.response) {
+                        Toast('error', err.response.data.mensaje)
+                    } else {
+                        Toast('error', 'Ha ocurrido un error')
+                    }
 				})
 			}
 		})
@@ -56,23 +60,27 @@ function Pedido({pedido, history}) {
 		            <p className="productos">Artículos del pedido:</p>
 			            <ul>
 							{
-								pedido.pedido.map(articulo => (
-									<li key={pedido._id + articulo.producto._id}>
-										<p>Artículo: {articulo.producto.nombre}</p>
-										<p>Precio: ${articulo.producto.precio}.-</p>
-										<p>Cantidad: {articulo.cantidad}</p>
-									</li>
-			            		))
+                                pedido.pedido.map((articulo, i) => (
+                                    articulo.producto !== null ?
+                                        <li key={pedido._id + articulo.producto._id}>
+                                            <p>Artículo: {articulo.producto.nombre}</p>
+                                            <p>Precio: ${articulo.producto.precio}.-</p>
+                                            <p>Cantidad: {articulo.cantidad}</p>
+                                        </li>
+                                    :   <li key={i}>Articulo eliminado del stock</li>
+                                ))
 							}
 			            </ul>
 		        </div>
 		        <p className="total">Total: ${pedido.total}.-</p>
 		    </div>
 		    <div className="acciones">
-		        <button type="button" className="btn btn-rojo btn-eliminar"
-		        		onClick={() => eliminarPedido(pedido._id)}>
-		            <i className="fas fa-times"></i>
-		            Eliminar Pedido
+		        <button 
+                    type="button" 
+                    className="btn btn-rojo btn-eliminar"
+                    onClick={() => eliminarPedido(pedido._id)}
+                ><i className="fas fa-times"></i>
+                Eliminar Pedido
 		        </button>
 		    </div>
 		</li>

@@ -32,14 +32,22 @@ function Cliente({cliente, history}) {
 				.then(response => {
 					if(response.status === 200) {
 						if(response.data.error) {
-							Toast('warning', 'No se ha podido eliminar')
+							Toast('warning', response.data.mensaje)
 						} else {
 							Toast('success', response.data.mensaje)
 						}
 					}
 				})
 				.catch(err => {
-					Toast('error', 'Ha ocurrido un error')
+                    if(err.response) {
+                        if(err.response.data.error) {
+                            Toast('error', err.response.data.mensaje)
+                        } else {
+                            Toast('error', err.response.data.mensaje)
+                        }
+                    } else {
+					   Toast('error', 'Ha ocurrido un error')        
+                    }
 				})
 			}
 		})
@@ -50,10 +58,10 @@ function Cliente({cliente, history}) {
 	return (
 	    <li className="cliente">
 	        <div className="info-cliente">
-	            <p className="nombre">{nombre} {apellido}</p>
-	            <p className="empresa">{empresa}</p>
-	            <p>{email}</p>
-	            <p>Tel: {telefono}</p>
+	            <p className="nombre">Cliente: {nombre} {apellido}</p>
+	            <p className="empresa">Empresa: {empresa}</p>
+	            <p>Email: {email}</p>
+	            <p>Teléfono: {telefono}</p>
 	        </div>
 	        <div className="acciones">
 	            <Link to={"/clientes/editar/" + _id} className="btn btn-azul">

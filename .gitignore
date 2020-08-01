@@ -23,10 +23,8 @@ yarn-debug.log*
 yarn-error.log*
 
 # files
-src/App.css
-src/index.css
-src/logo.svg
 Pasos.txt
 .env.development
 .env.production
 gists.js
+TODO.txt

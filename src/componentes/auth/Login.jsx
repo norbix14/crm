@@ -43,22 +43,28 @@ function Login(props) {
 					<form onSubmit={iniciarSesion}>
 						<div className="campo">
 							<label>Email</label>
-							<input type="text" name="email"
-								   placeholder="Tu email"
-								   required
-								   onChange={leerDatos}
+							<input 
+                                type="text" 
+                                name="email"
+								placeholder="Tu email"
+								required
+				                onChange={leerDatos}
 							/>
 						</div>
 						<div className="campo">
 							<label>Contraseña</label>
-							<input type="password" name="password"
-								   placeholder="Tu contraseña"
-								   required
-								   onChange={leerDatos}
+							<input 
+                                type="password" 
+                                name="password"
+								placeholder="Tu contraseña"
+								required
+								onChange={leerDatos}
 							/>
 						</div>
-						<input type="submit" value="Iniciar sesión" 
-							   className="btn btn-verde btn-block" 
+						<input 
+                            type="submit" 
+                            value="Iniciar sesión" 
+				            className="btn btn-verde btn-block" 
 						/>
 					</form>
 				</div>

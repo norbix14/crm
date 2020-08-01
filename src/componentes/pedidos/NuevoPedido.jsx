@@ -159,8 +159,11 @@ function NuevoPedido(props) {
             {
                 total > 0 ? (
                     <form onSubmit={realizarPedido}>
-                        <input type="submit" className="btn btn-verde btn-block" 
-                            value="Realizar el pedido" />
+                        <input 
+                            type="submit" 
+                            className="btn btn-verde btn-block" 
+                            value="Realizar el pedido" 
+                        />
                     </form>
                 ) : null
             }

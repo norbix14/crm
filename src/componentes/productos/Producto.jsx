@@ -8,6 +8,7 @@ import { CRMContext } from '../../context/CRMContext'
 function Producto({producto, history}) {
 	const [ auth ] = useContext(CRMContext)
 	const { _id, nombre, precio, imagen } = producto
+    
 	const eliminarProducto = idProducto => {
 		Swal.fire({
 			title: '¿Estas seguro?',
@@ -32,21 +33,31 @@ function Producto({producto, history}) {
 				.then(response => {
 					if(response.status === 200) {
 						if(response.data.error) {
-							Toast('warning', 'No se ha podido eliminar')
+							Toast('warning', response.data.mensaje)
 						} else {
 							Toast('success', response.data.mensaje)
 						}
 					}
 				})
 				.catch(err => {
-					Toast('error', 'Ha ocurrido un error')
+                    if(err.response) {
+                        if(err.response.data.error) {
+                            Toast('error', err.response.data.mensaje)
+                        } else {
+                            Toast('error', err.response.data.mensaje)
+                        }
+                    } else {
+                        Toast('error', 'Ha ocurrido un error')
+                    }
 				})
 			}
 		})
 	}
+    
 	if(!auth.auth) {
         history.push('/iniciar-sesion')
     }
+    
 	return (
 		<li className="producto">
 		    <div className="info-producto">
@@ -54,9 +65,7 @@ function Producto({producto, history}) {
 		        <p className="precio">${precio}.-</p>
 				{
 					imagen ? (
-						<img src={process.env.REACT_APP_BACKEND_URL + imagen} 
-							alt="Imagen de producto" 
-						/>
+						<img src={imagen} alt="Imagen de producto" />
 		        	) : null
 				}
 		    </div>
@@ -64,6 +73,10 @@ function Producto({producto, history}) {
 		        <Link to={"/productos/editar/" + _id} className="btn btn-azul">
 		            <i className="fas fa-pen-alt"></i>
 		            Editar Producto
+		        </Link>
+		        <Link to={"/productos/imagen/" + _id} className="btn btn-azul">
+		            <i className="fas fa-pen-alt"></i>
+		            Editar Imagen
 		        </Link>
 		        <button type="button" className="btn btn-rojo btn-eliminar"
 		        		onClick={() => eliminarProducto(_id)}>

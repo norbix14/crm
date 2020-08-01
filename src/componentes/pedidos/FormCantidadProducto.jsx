@@ -20,10 +20,12 @@ function FormCantidadProducto(props) {
 		               onClick={() => sumarProductos(index)}
 		            ></i>
 		        </div>
-		        <button type="button" className="btn btn-rojo"
-		        		onClick={() => eliminarProductoPedido(producto._id)}>
-		            <i className="fas fa-minus-circle"></i>
-		            Eliminar Producto
+		        <button 
+                    type="button" 
+                    className="btn btn-rojo"
+                    onClick={() => eliminarProductoPedido(producto._id)}
+                ><i className="fas fa-minus-circle"></i>
+                Eliminar Producto
 		        </button>
 		    </div>
 		</li>
