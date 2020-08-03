@@ -4,9 +4,11 @@ import { CRMContext } from '../../context/CRMContext'
 
 const Home = (props) => {
     const [ auth ] = useContext(CRMContext)
+    
     if(!auth.auth) {
         props.history.push('/iniciar-sesion')
     }
+    
     return (
         <Fragment>
             <h2>Home</h2>

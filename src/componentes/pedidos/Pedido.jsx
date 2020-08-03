@@ -7,7 +7,19 @@ import { CRMContext } from '../../context/CRMContext'
 
 function Pedido({pedido, history}) {
 	const [ auth ] = useContext(CRMContext)
+    
 	const { cliente } = pedido
+    
+    const clientName = client => {
+        let nombreCompleto
+        if(client !== null) {
+            nombreCompleto = `${client.nombre} ${client.apellido}`
+        } else {
+            nombreCompleto = 'No existe el cliente'   
+        }
+        return nombreCompleto
+    }
+    
 	const eliminarPedido = idPedido => {
 		Swal.fire({
 			title: '¿Estas seguro?',
@@ -48,14 +60,16 @@ function Pedido({pedido, history}) {
 			}
 		})
 	}
+    
 	if(!auth.auth) {
         history.push('/iniciar-sesion')
     }
+    
 	return (
 		<li className="pedido">
 		    <div className="info-pedido">
 		        <p className="id">ID: {pedido._id}</p>
-		        <p className="nombre">Cliente: {cliente.nombre} {cliente.apellido}</p>
+		        <p className="nombre">Cliente: {clientName(cliente)}</p>
 		        <div className="articulos-pedido">
 		            <p className="productos">Artículos del pedido:</p>
 			            <ul>

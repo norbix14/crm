@@ -1,8 +1,8 @@
 import React, { Fragment, useContext, useState, useEffect } from 'react'
 import Toast from '../../helpers/Toast'
 import { withRouter } from 'react-router-dom'
-import clienteAxios from '../../config/axios'
 import { CRMContext } from '../../context/CRMContext'
+import { editCliente, consultarClientelaDeApi } from './handleCliente'
 
 function EditarCliente(props) {
 	const { id } = props.match.params
@@ -14,12 +14,14 @@ function EditarCliente(props) {
 		email: '',
 		telefono: ''
 	})
+    
 	const actualizarState = e => {
 		datosCliente({
 			...cliente,
 			[e.target.name]: e.target.value
 		})
 	}
+    
 	const validarCliente = () => {
 		const { nombre, apellido, empresa, email, telefono } = cliente
 		let valido = !nombre.length || !apellido.length || 
@@ -27,69 +29,28 @@ function EditarCliente(props) {
 					 !telefono.length
 		return valido
 	}
-	const actualizarCliente = e => {
-		e.preventDefault()
-		const url = `/clientes/${cliente._id}`
-		clienteAxios.put(url,
-			cliente,
-			{
-				headers: {
-					Authorization: `Bearer ${auth.token}`
-				}
-			}
-		)
-		.then(response => {
-			if(response.status === 200) {
-				if(response.data.error) {
-					if(response.data.error.code === 11000) {
-						Toast('warning', 'Este email ya esta registrado')
-					} else {
-						Toast('warning', 'Hubo un error inesperado')
-					}
-				} else {
-					Toast('success', response.data.mensaje)
-					props.history.push('/')
-				}
-			}
-		})
-		.catch(err => {
-			Toast('error', 'Ha ocurrido un error')
-		})
-	}
+    
+    const handleSubmit = e => {
+        e.preventDefault()
+        editCliente(cliente._id, cliente, auth.token, res => {
+            if(res.ok) {
+                Toast('success', res.msg)
+				props.history.push('/clientes')
+            } else {
+                Toast('warning', res.msg)
+            }
+        })
+    }
 	
     useEffect(() => {
 		if(auth.token !== '') {
-            const consultarAPI = async () => {
-                try {
-                    const url = `/clientes/${id}`
-                    const obtenerCliente = await clienteAxios.get(url,
-                        {
-                            headers: {
-                                Authorization: `Bearer ${auth.token}`
-                            }
-                        }
-                    )
-                    if(obtenerCliente.status === 200) {
-                        if(!obtenerCliente.data.error) {
-                            datosCliente(obtenerCliente.data.datos)
-                        } else {
-                            datosCliente([])
-                        }
-                    }
-                } catch(error) {
-                    if(error.response) {
-                        if(error.response.data.status === 500) {
-                            // props.history.push('/iniciar-sesion')
-                            Toast('warning', error.response.data.mensaje)
-                        } else {
-                            Toast('warning', error.response.data.mensaje)
-                        }
-                    } else {
-                        Toast('error', 'Ha ocurrido un error')
-                    }
+            consultarClientelaDeApi(id, auth.token, res => {
+                if(res.ok) {
+                    datosCliente(res.data)
+                } else {
+                    Toast('warning', res.msg)
                 }
-            }
-			consultarAPI()
+            })
 		} else {
 			props.history.push('/iniciar-sesion')
 		}
@@ -102,7 +63,7 @@ function EditarCliente(props) {
 	return (
 	    <Fragment>
 		    <h2>Editar Cliente</h2>
-		    <form onSubmit={actualizarCliente}>
+		    <form onSubmit={handleSubmit}>
 		        <legend>Llena todos los campos</legend>
 		        <div className="campo">
 		            <label>Nombre:</label>

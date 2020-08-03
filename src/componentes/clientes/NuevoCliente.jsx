@@ -1,8 +1,8 @@
 import React, { Fragment, useContext, useState } from 'react'
 import { withRouter } from 'react-router-dom'
 import Toast from '../../helpers/Toast'
-import clienteAxios from '../../config/axios'
 import { CRMContext } from '../../context/CRMContext'
+import { addCliente } from './handleCliente'
 
 function NuevoCliente(props) {
 	const [ auth ] = useContext(CRMContext)
@@ -13,12 +13,14 @@ function NuevoCliente(props) {
 		email: '',
 		telefono: ''
 	})
+    
 	const actualizarState = e => {
 		guardarCliente({
 			...cliente,
 			[e.target.name]: e.target.value
 		})
 	}
+    
 	const validarCliente = () => {
 		const { nombre, apellido, empresa, email, telefono } = cliente
 		let valido = !nombre.length || !apellido.length || 
@@ -26,49 +28,27 @@ function NuevoCliente(props) {
 					 !telefono.length
 		return valido
 	}
-	const agregarCliente = e => {
-		e.preventDefault()
-		clienteAxios.post('/clientes',
-			cliente,
-			{
-				headers: {
-					Authorization: `Bearer ${auth.token}`
-				}
-			}
-		)
-		.then(response => {
-			if(response.status === 200) {
-				if(response.data.error) {
-					if(response.data.error.code === 11000) {
-						Toast('warning', 'Este email ya esta registrado')
-					} else {
-						Toast('warning', 'No se ha podido agregar')
-					}
-				} else {
-					Toast('success', response.data.mensaje)
-					props.history.push('/')
-				}
-			}
-		})
-		.catch(err => {
-            if(err.response) {
-               if(err.response.data.status === 500) {
-                   Toast('warning', err.response.data.mensaje)
-               } else {
-                   Toast('warning', err.response.data.mensaje)
-               }
+    
+    const handleSubmit = e => {
+        e.preventDefault()
+        addCliente(cliente, auth.token, res => {
+            if(res.ok) {
+                Toast('success', res.msg)
+                props.history.push('/clientes')
             } else {
-                Toast('error', 'Ha ocurrido un error')
+                Toast('warning', res.msg)
             }
-		})
-	}
+        })
+    }
+    
 	if(!auth.auth) {
 		props.history.push('/iniciar-sesion')
 	}
+    
 	return (
 	    <Fragment>
 		    <h2>Nuevo Cliente</h2>
-		    <form onSubmit={agregarCliente}>
+		    <form onSubmit={handleSubmit}>
 		        <legend>Llena todos los campos</legend>
 		        <div className="campo">
 		            <label>Nombre:</label>

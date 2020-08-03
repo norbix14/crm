@@ -13,6 +13,7 @@ function NuevoPedido(props) {
     const [ busqueda, guardarBusqueda ] = useState('')
     const [ productos, guardarProductos ] = useState([])
     const [ total, guardarTotal ] = useState(0)
+    
     const buscarProducto = async e => {
         e.preventDefault()
         try {
@@ -51,9 +52,9 @@ function NuevoPedido(props) {
             Toast('error', 'Ha ocurrido un error')
         }
     }
-    const leerDatosBusqueda = e => {
-        guardarBusqueda(e.target.value)
-    }
+    
+    const leerDatosBusqueda = e => guardarBusqueda(e.target.value)
+    
     const restarProductos = i => {
         const todosProductos = [...productos]
         if(todosProductos[i].cantidad === 0) return
@@ -61,12 +62,14 @@ function NuevoPedido(props) {
         guardarProductos(todosProductos)
         actualizarTotal()
     }
+    
     const sumarProductos = i => {
         const todosProductos = [...productos]
         todosProductos[i].cantidad++
         guardarProductos(todosProductos)
         actualizarTotal()
     }
+    
     const actualizarTotal = useCallback(() => {
         if(productos.length === 0) {
             guardarTotal(0)
@@ -76,10 +79,12 @@ function NuevoPedido(props) {
         productos.map(producto => nuevoTotal += (producto.cantidad * producto.precio))
         guardarTotal(nuevoTotal)
     }, [productos])
+    
     const eliminarProductoPedido = id => {
         const productosFiltrados = productos.filter(producto => producto.producto !== id)
         guardarProductos(productosFiltrados)
     }
+    
     const realizarPedido = async e => {
         e.preventDefault()
         const { id } = props.match.params
@@ -110,7 +115,7 @@ function NuevoPedido(props) {
             Toast('error', 'Ha ocurrido un error')
         }
     }
-    // ATENCION: LOOP INFINITO si se agrega [productos] como dependencia
+    
     useEffect(() => {
         async function consultarAPI() {
             const url = `/clientes/${id}`
@@ -126,9 +131,11 @@ function NuevoPedido(props) {
         consultarAPI()
         actualizarTotal()
     }, [id, actualizarTotal, auth.token])
+    
     if(!auth.auth) {
         props.history.push('/iniciar-sesion')
     }
+    
 	return (
 	    <Fragment>
 			<h2>Nuevo pedido</h2>
@@ -157,7 +164,7 @@ function NuevoPedido(props) {
             </ul>
             <p className="total">Total a pagar: <span>${total}.-</span></p>
             {
-                total > 0 ? (
+                total > 0 && (
                     <form onSubmit={realizarPedido}>
                         <input 
                             type="submit" 
@@ -165,7 +172,7 @@ function NuevoPedido(props) {
                             value="Realizar el pedido" 
                         />
                     </form>
-                ) : null
+                )
             }
 	    </Fragment>
 	)

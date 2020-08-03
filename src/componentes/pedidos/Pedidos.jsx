@@ -8,7 +8,7 @@ import Toast from '../../helpers/Toast'
 function Pedidos(props) {
 	const [ pedidos, guardarPedidos ] = useState([])
 	const [ auth ] = useContext(CRMContext)
-	// ATENCION: LOOP INFINITO si se le pasa como dependencia a [pedidos]
+    
 	useEffect(() => {
 		if(auth.token !== '') {
 			async function consultarAPI() {
@@ -45,9 +45,11 @@ function Pedidos(props) {
 			props.history.push('/iniciar-sesion')
 		}
 	}, [auth.token, props.history])
+    
 	if(!auth.auth) {
 		props.history.push('/iniciar-sesion')
 	}
+    
 	return (
 	    <Fragment>
 	    	<h2>Pedidos</h2>
@@ -55,7 +57,10 @@ function Pedidos(props) {
 	    		pedidos.length > 0 ? 
 			    	<ul className="listado-pedidos">
 			    		{pedidos.map(pedido => (
-				    		<Pedido pedido={pedido} key={pedido._id} />
+				    		<Pedido 
+				    		    pedido={pedido} 
+				    		    key={pedido._id} 
+				            />
 			    		))}
 			    	</ul>
 	    		: 	<h2>Aún no hay pedidos realizados</h2>
