@@ -8,31 +8,31 @@ function Login(props) {
 	const [ auth, guardarAuth ] = useContext(CRMContext)
 	const [ credenciales, guardarCredenciales ] = useState({})
 	
-    const leerDatos = e => {
+  const leerDatos = e => {
 		guardarCredenciales({
 			...credenciales,
 			[e.target.name]: e.target.value
 		})
 	}
 
-    const handleSubmit = e => {
-        e.preventDefault()
-        iniciarSesion(credenciales)
-        .then(data => {
-            if(data.ok) {
-                let token = data.msg
-                localStorage.setItem('token', token)
-                guardarAuth({
+	const handleSubmit = e => {
+		e.preventDefault()
+		iniciarSesion(credenciales)
+		.then(data => {
+		  if(data.ok) {
+		    let token = data.msg
+		    localStorage.setItem('token', token)
+		    guardarAuth({
 					token,
 					auth: true
 				})
-                Toast('success', 'Sesión iniciada')
+				Toast('success', 'Sesión iniciada')
 				props.history.push('/')
-            } else {
-                Toast('error', data.msg)
-            }
-        })
-    }
+		  } else {
+		    Toast('error', data.msg)
+		  }
+		})
+	}
     
 	return (
 		<Fragment>
@@ -43,19 +43,19 @@ function Login(props) {
 						<div className="campo">
 							<label>Email</label>
 							<input 
-                                type="text" 
-                                name="email"
+                type="text" 
+                name="email"
 								placeholder="Tu email"
 								autoComplete="email"
 								required
-				                onChange={leerDatos}
+								onChange={leerDatos}
 							/>
 						</div>
 						<div className="campo">
 							<label>Contraseña</label>
 							<input 
-                                type="password" 
-                                name="password"
+                type="password" 
+                name="password"
 								placeholder="Tu contraseña"
 								autoComplete="current-password"
 								required
@@ -63,9 +63,9 @@ function Login(props) {
 							/>
 						</div>
 						<input 
-                            type="submit" 
-                            value="Iniciar sesión" 
-				            className="btn btn-verde btn-block" 
+							type="submit" 
+							value="Iniciar sesión" 
+							className="btn btn-verde btn-block" 
 						/>
 					</form>
 				</div>
