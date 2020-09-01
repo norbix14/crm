@@ -19,11 +19,14 @@ import NuevoProducto from './componentes/productos/NuevoProducto'
 import ImagenProducto from './componentes/productos/ImagenProducto'
 /* Componente Login */
 import Login from './componentes/auth/Login'
+/* Componente CrearCuenta */
+/*import CrearCuenta from './componentes/auth/CrearCuenta'*/
 /* Componente Context */
 import { CRMContext, CRMProvider } from './context/CRMContext'
 
-function App() {
+const App = () => {
   const [ auth, guardarAuth ] = useContext(CRMContext)
+  
   return (
     <Router>
       <Fragment>
@@ -48,7 +51,10 @@ function App() {
                 <Route exact path="/productos/imagen/:id" component={ImagenProducto} />
                 <Route exact path="/productos/editar/:id" component={EditarProducto} />
                 {/** Zona de autenticacion **/}
+                {/*<Route exact path="/crear-cuenta" component={CrearCuenta} />*/}
                 <Route exact path="/iniciar-sesion" component={Login} />
+                {/** Ruta no existe **/}
+                <Route component={Home} />
               </Switch>
             </main>
           </div>

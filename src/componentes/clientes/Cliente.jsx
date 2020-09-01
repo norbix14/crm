@@ -1,14 +1,16 @@
 import React, { useContext } from 'react'
+import PropTypes from 'prop-types'
 import { Link, withRouter } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import Toast from '../../helpers/Toast'
 import { CRMContext } from '../../context/CRMContext'
 import { deleteCliente } from './handleCliente'
 
-function Cliente({ cliente, history }) {
+const Cliente = (props) => {
 	const [auth] = useContext(CRMContext)
 
-	const { _id, nombre, apellido, empresa, email, telefono } = cliente
+	const {_id, nombre, apellido, 
+		empresa, email, telefono } = props.cliente
 
 	const eliminarCliente = (idCliente) => {
 		Swal.fire({
@@ -20,7 +22,8 @@ function Cliente({ cliente, history }) {
 			cancelButtonColor: '#d33',
 			confirmButtonText: 'Si, borrar',
 			cancelButtonText: 'No, cancelar',
-		}).then((resultado) => {
+		})
+		.then((resultado) => {
 			if (resultado.value) {
 				deleteCliente(idCliente, auth.token, (res) => {
 					if (res.ok) {
@@ -34,39 +37,44 @@ function Cliente({ cliente, history }) {
 	}
 
 	if (!auth.auth) {
-		history.push('/iniciar-sesion')
+		props.history.push('/iniciar-sesion')
 	}
 
 	return (
 		<li className="cliente">
 			<div className="info-cliente">
-				<p className="nombre">
-					Cliente: {nombre} {apellido}
-				</p>
+				<p className="nombre">Cliente: {nombre} {apellido}</p>
 				<p className="empresa">Empresa: {empresa}</p>
 				<p>Email: {email}</p>
 				<p>Teléfono: {telefono}</p>
 			</div>
 			<div className="acciones">
-				<Link className="btn btn-azul" to={'/clientes/editar/' + _id}>
-					<i className="fas fa-pen-alt"></i>
+				<Link 
+					className="btn btn-azul" 
+					to={'/clientes/editar/' + _id}
+				><i className="fas fa-pen-alt"></i>
 					Editar Cliente
 				</Link>
-				<Link className="btn btn-amarillo" to={'/pedidos/nuevo/' + _id}>
-					<i className="fas fa-plus"></i>
+				<Link 
+					className="btn btn-amarillo" 
+					to={'/pedidos/nuevo/' + _id}
+				><i className="fas fa-plus"></i>
 					Nuevo Pedido
 				</Link>
 				<button
 					type="button"
 					className="btn btn-rojo btn-eliminar"
 					onClick={() => eliminarCliente(_id)}
-				>
-					<i className="fas fa-times"></i>
+				><i className="fas fa-times"></i>
 					Eliminar Cliente
 				</button>
 			</div>
 		</li>
 	)
+}
+
+Cliente.propTypes = {
+	cliente: PropTypes.object.isRequired
 }
 
 export default withRouter(Cliente)

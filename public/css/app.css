@@ -29,6 +29,9 @@ a {
   color: #000;
   text-decoration: none;
 }
+.acc-link {
+  margin-top: 1.5rem;
+}
 /** GLOBALES **/
 h1 {
   font-family: var(--fontHeading);
@@ -309,7 +312,7 @@ h2 {
 
 /** Formularios **/
 form {
-  width:95%;
+  width: 95%;
   max-width: 800px;
   margin: 4rem auto 0 auto;
 }
@@ -435,14 +438,16 @@ h3.resumen-titulo {
 }
 
 /** Login **/
-.login {
+.login, 
+.crear-cuenta {
   max-width: 520px;
   margin: 15rem  auto 0 auto;
   padding: 4rem 2rem;
   background-color: var(--grisClaro);
   border-radius: 1.5rem;
 }
-.login h2 {
+.login h2,
+.crear-cuenta h2 {
   text-align: center;
 }
 

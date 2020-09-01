@@ -1,16 +1,22 @@
-import React, { useContext, useEffect, useState, Fragment } from 'react'
+import React, { useContext, useState } from 'react'
 import { withRouter } from 'react-router-dom'
 import axios from 'axios'
 import { v4 as uuid } from 'uuid'
-import Toast from '../../helpers/Toast'
-import clienteAxios from '../../config/axios'
 import { CRMContext } from '../../context/CRMContext'
+import Toast from '../../helpers/Toast'
+import {
+  loadImage,
+  saveImage,
+  deleteImage
+} from './handleProducto'
+import BotonCarga from './BotonCarga'
+import BotonesAcciones from './BotonesAcciones'
+import ImagenActual from './ImagenActual'
 
-function ImagenProducto(props) {
+const ImagenProducto = (props) => {
   const idProducto = props.match.params.id
   const [auth] = useContext(CRMContext)
   const [archivo, guardarArchivo] = useState({})
-  const [imagenprevia, guardarImagenPrevia] = useState('')
   const [datosimagen, guardarDatosImagen] = useState({})
   const [estadocarga, setEstadoCarga] = useState(false)
   const [estadonube, setEstadoNube] = useState(false)
@@ -19,10 +25,9 @@ function ImagenProducto(props) {
   const leerArchivo = (e) => {
     const file = e.target.files[0]
     if (file) {
-      if (
-        (file.type === 'image/jpeg' || file.type === 'image/png') &&
-        file.size <= 409600
-      ) {
+      if ((file.type === 'image/jpeg' || 
+           file.type === 'image/png') &&
+           file.size <= 409600) {
         guardarArchivo(file)
         setEstadoCarga(true)
       } else {
@@ -38,192 +43,103 @@ function ImagenProducto(props) {
     const time_stamp = new Date().getTime()
     const public_id = uuid()
     const file_info = `public_id=${public_id}&timestamp=${time_stamp}`
-    const urlCloudCred = `/cloud-cred/${file_info}`
-    clienteAxios
-      .post(
-        urlCloudCred,
-        {
-          params: {
-            fileinfo: file_info,
-          },
-        },
-        {
+    loadImage(file_info, auth.token, (res) => {
+      if(res.ok) {
+        const { url, key, signature } = res.data
+
+        const formData = new FormData()
+        formData.append('timestamp', time_stamp)
+        formData.append('public_id', public_id)
+        formData.append('api_key', key)
+        formData.append('file', file)
+        formData.append('signature', signature)
+
+        axios.post(url, formData, {
           headers: {
-            Authorization: `Bearer ${auth.token}`,
+            'Content-Type': 'multipart/form-data'
           },
-        }
-      )
-      .then((response) => {
-        if (response.status === 200) {
-          const { data: { datos: { url, key, signature } }} = response
-
-          const formData = new FormData()
-          formData.append('timestamp', time_stamp)
-          formData.append('public_id', public_id)
-          formData.append('api_key', key)
-          formData.append('file', file)
-          formData.append('signature', signature)
-
-          axios
-            .post(url, formData, {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-              },
-              onUploadProgress(e) {
-                setProgressBar(Math.round((e.loaded * 100.0) / e.total))
-              },
-            })
-            .then((response) => {
-              if (response.status === 200) {
-                guardarDatosImagen(response)
-                setEstadoCarga(false)
-                setEstadoNube(true)
-                Toast('success', 'Imagen cargada')
-              }
-            })
-            .catch((err) => {
-              setEstadoNube(false)
-              Toast('error', 'Error al cargar la imagen')
-            })
-        }
-      })
-      .catch((err) => {
-        if (err.response) {
-          if (err.response.data.error) {
-            Toast('warning', err.response.data.mensaje)
-          } else {
-            Toast('warning', err.response.data.mensaje)
+          onUploadProgress(e) {
+            setProgressBar(Math.round((e.loaded * 100.0) / e.total))
           }
-        } else {
-          Toast('error', 'Ha ocurrido un error en la petición')
-        }
-      })
+        })
+        .then((response) => {
+          if (response.status === 200) {
+            guardarDatosImagen(response)
+            setEstadoCarga(false)
+            setEstadoNube(true)
+            Toast('success', 'Imagen cargada')
+          }
+        })
+        .catch((err) => {
+          setEstadoNube(false)
+          Toast('error', 'Error al cargar la imagen')
+        })
+      } else {
+        Toast('warning', res.msg)
+      }
+    })
   }
 
-  const guardarImagen = async (id, file) => {
-    const { secure_url, public_id, created_at } = file
+  const guardarImagen = () => {
+    const { secure_url, public_id, created_at } = datosimagen.data
     const data = {
       secure_url,
       public_id,
       created_at,
-      owner: id,
+      owner: idProducto,
     }
-    try {
-      const url = `/productos/imagen/${id}`
-      const nuevoProducto = await clienteAxios.post(url, data, {
-        headers: {
-          Authorization: `Bearer ${auth.token}`,
-        },
-      })
-      if (nuevoProducto.status === 200) {
-        if (nuevoProducto.data) {
-          if (nuevoProducto.data.error) {
-            Toast('warning', nuevoProducto.data.mensaje)
-          } else {
-            Toast('success', nuevoProducto.data.mensaje)
-            props.history.push('/productos')
-          }
-        }
-      }
-    } catch (err) {
-      if (err.response) {
-        if (err.response.data.error) {
-          Toast('error', err.response.data.mensaje)
-        } else {
-          Toast('error', err.response.data.mensaje)
-        }
+    saveImage(idProducto, data, auth.token, (res) => {
+      if(res.ok) {
+        Toast('success', res.msg)
+        props.history.push('/productos')
       } else {
-        Toast('error', 'Ha ocurrido un error')
+        Toast('warning', res.msg)
       }
-    }
+    })
   }
 
-  const cancelarImagen = (publicid) => {
-    console.log('Borrar imagen de Cloudinary...', publicid)
-  }
-
-  useEffect(() => {
-    const consultarImagen = async () => {
-      const url = `/productos/${idProducto}`
-      const imagen = await clienteAxios.get(url, {
-        headers: {
-          Authorization: `Bearer ${auth.token}`,
-        },
-      })
-      if (imagen.status === 200) {
-        if (!imagen.data.error) {
-          guardarImagenPrevia(imagen.data.datos)
-        } else {
-          guardarImagenPrevia('')
-        }
+  const cancelarImagen = () => {
+    const { data: { public_id } } = datosimagen
+    deleteImage(public_id, auth.token, (res) => {
+      if(res.ok) {
+        Toast('success', res.msg)
+        props.history.push('/productos')
       } else {
-        guardarImagenPrevia('')
+        Toast('warning', res.msg)
       }
-    }
-    consultarImagen()
-  }, [idProducto, auth.token])
+    })
+  }
 
   if (!auth.auth) {
     props.history.push('/iniciar-sesion')
   }
 
   return (
-    <Fragment>
+    <form>
       <h2>Imagen del producto</h2>
-      <form>
-        <legend>Elegir imagen para el producto</legend>
-        <div className="campo">
-          <label>Imagen:</label>
-          <input type="file" name="imagen" onChange={leerArchivo} />
-        </div>
-        <div className="campo">
-          <label>Imagen actual:</label>
-          {datosimagen.data ? (
-            <img
-              width="300"
-              alt="Imagen de producto"
-              src={datosimagen.data.secure_url}
-            />
-          ) : imagenprevia.imagen ? (
-            <img width="300" alt="Imagen previa" src={imagenprevia.imagen} />
-          ) : (
-            <p>Este producto aún no tiene una imagen</p>
-          )}
-        </div>
-        <div className="acciones">
-          {estadocarga ? (
-            <Fragment>
-              <button
-                type="button"
-                className="btn btn-azul"
-                onClick={cargarImagen}
-              >
-                Cargar
-              </button>
-              <progress className="progress-bar" value={progressbar}></progress>
-            </Fragment>
-          ) : null}
-          {estadonube ? (
-            <Fragment>
-              <button
-                type="button"
-                className="btn btn-verde"
-                onClick={() => guardarImagen(idProducto, datosimagen.data)}
-              >
-                Guardar
-              </button>
-              <button
-                type="button"
-                className="btn btn-rojo"
-                onClick={() => cancelarImagen(datosimagen.data.public_id)}
-              >
-                Cancelar
-              </button>
-            </Fragment>
-          ) : null}
-        </div>
-      </form>
-    </Fragment>
+      <legend>Elegir imagen para el producto</legend>
+      <div className="campo">
+        <label>Imagen</label>
+        <input type="file" name="imagen" onChange={leerArchivo} />
+      </div>
+      <ImagenActual datosimagen={datosimagen} />
+      <div className="acciones">
+        {
+          estadocarga &&
+          <BotonCarga 
+            cargarImagen={cargarImagen}
+            progressbar={progressbar}
+          />
+        }
+        {
+          estadonube &&
+          <BotonesAcciones
+            guardarImagen={guardarImagen}
+            cancelarImagen={cancelarImagen}
+          />
+        }
+      </div>
+    </form>
   )
 }
 

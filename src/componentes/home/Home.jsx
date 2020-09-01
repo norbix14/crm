@@ -1,6 +1,7 @@
-import React, { useContext, Fragment } from 'react'
+import React, { useContext } from 'react'
 import { withRouter } from 'react-router-dom'
 import { CRMContext } from '../../context/CRMContext'
+import { AddAnimClass } from '../../helpers/AddAnimateClass'
 
 const Home = (props) => {
   const [ auth ] = useContext(CRMContext)
@@ -10,10 +11,10 @@ const Home = (props) => {
   }
 
   return (
-    <Fragment>
+    <div className={AddAnimClass('fadeInUp')}>
       <h2>Home</h2>
-      <h3>Mostrar gráficos</h3>
-    </Fragment>
+      <h3>Echa un vistazo</h3>
+    </div>
   )
 }
 

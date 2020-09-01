@@ -1,10 +1,13 @@
-import React, { Fragment, useContext, useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { withRouter } from 'react-router-dom'
-import Toast from '../../helpers/Toast'
 import { CRMContext } from '../../context/CRMContext'
-import { iniciarSesion } from './iniciarSesion'
+import Toast from '../../helpers/Toast'
+import { validateFields } from '../../helpers/Validator'
+import { iniciarSesion } from './handleUser'
+import FormLogin from './FormLogin'
 
-function Login(props) {
+const Login = (props) => {
+	// eslint-disable-next-line
 	const [ auth, guardarAuth ] = useContext(CRMContext)
 	const [ credenciales, guardarCredenciales ] = useState({})
 	
@@ -17,60 +20,38 @@ function Login(props) {
 
 	const handleSubmit = e => {
 		e.preventDefault()
-		iniciarSesion(credenciales)
-		.then(data => {
-		  if(data.ok) {
-		    let token = data.msg
-		    localStorage.setItem('token', token)
-		    guardarAuth({
-					token,
-					auth: true
-				})
-				Toast('success', 'Sesión iniciada')
-				props.history.push('/')
-		  } else {
-		    Toast('error', data.msg)
-		  }
-		})
+		const passed = validateFields(credenciales)
+		if(passed.valid) {
+			iniciarSesion(credenciales, (res) => {
+				if(res.ok) {
+					const token = res.msg
+			    localStorage.setItem('token', token)
+			    guardarAuth({
+						token,
+						auth: true
+					})
+					Toast('success', 'Sesión iniciada')
+					props.history.push('/')
+				} else {
+					Toast('error', res.msg)
+				}
+			})
+		} else {
+			return Toast('warning', passed.msg)
+		}
 	}
-    
+
 	return (
-		<Fragment>
-			<div className="login">
-				<h2>Iniciar sesión</h2>
-				<div className="contenedor-formulario">
-					<form onSubmit={handleSubmit}>
-						<div className="campo">
-							<label>Email</label>
-							<input 
-                type="text" 
-                name="email"
-								placeholder="Tu email"
-								autoComplete="email"
-								required
-								onChange={leerDatos}
-							/>
-						</div>
-						<div className="campo">
-							<label>Contraseña</label>
-							<input 
-                type="password" 
-                name="password"
-								placeholder="Tu contraseña"
-								autoComplete="current-password"
-								required
-								onChange={leerDatos}
-							/>
-						</div>
-						<input 
-							type="submit" 
-							value="Iniciar sesión" 
-							className="btn btn-verde btn-block" 
-						/>
-					</form>
-				</div>
+		<div className="login">
+			<h2>Iniciar sesión</h2>
+			{/*<Link to="/crear-cuenta">Crear cuenta</Link>*/}
+			<div className="contenedor-formulario">
+				<FormLogin
+					handleSubmit={handleSubmit}
+					leerDatos={leerDatos}
+				/>
 			</div>
-		</Fragment>
+		</div>
 	)
 }
 

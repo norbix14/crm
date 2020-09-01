@@ -1,44 +1,30 @@
-import React, { Fragment, useContext, useState, useEffect } from 'react'
+import React, {
+	useContext, 
+	useState, 
+	useEffect
+} from 'react'
 import { withRouter } from 'react-router-dom'
-import clienteAxios from '../../config/axios'
-import Pedido from './Pedido'
 import { CRMContext } from '../../context/CRMContext'
+import Pedido from './Pedido'
 import Toast from '../../helpers/Toast'
+import { searchOrders } from './handlePedido'
+import Resultados from '../helpers/Resultados'
+import { AddAnimClass } from '../../helpers/AddAnimateClass'
 
-function Pedidos(props) {
+const Pedidos = (props) => {
 	const [pedidos, guardarPedidos] = useState([])
 	const [auth] = useContext(CRMContext)
 
 	useEffect(() => {
 		if (auth.token !== '') {
-			async function consultarAPI() {
-				try {
-					const obtenerPedidos = await clienteAxios.get('/pedidos', {
-						headers: {
-							Authorization: `Bearer ${auth.token}`,
-						},
-					})
-					if (obtenerPedidos.status === 200) {
-						if (!obtenerPedidos.data.error) {
-							guardarPedidos(obtenerPedidos.data.datos)
-						} else {
-							guardarPedidos([])
-						}
-					}
-				} catch (error) {
-					if (error.response) {
-						if (error.response.data.status === 500) {
-							// props.history.push('/iniciar-sesion')
-							Toast('warning', error.response.data.mensaje)
-						} else {
-							Toast('warning', error.response.data.mensaje)
-						}
-					} else {
-						Toast('error', 'Ha ocurrido un error')
-					}
+			searchOrders(auth.token, (res) => {
+				if(res.ok) {
+					guardarPedidos(res.data)
+				} else {
+					guardarPedidos([])
+					Toast('warning', res.msg)
 				}
-			}
-			consultarAPI()
+			})
 		} else {
 			props.history.push('/iniciar-sesion')
 		}
@@ -49,19 +35,22 @@ function Pedidos(props) {
 	}
 
 	return (
-		<Fragment>
-			<h2>Pedidos</h2>
+		<div className={AddAnimClass('fadeInRight')}>
+			<h2>
+				Pedidos <Resultados len={pedidos.length} />
+			</h2>
 			{
 				pedidos.length > 0 ?
-					<ul className="listado-pedidos">
-						{pedidos.map((pedido) => (
-							<Pedido pedido={pedido} key={pedido._id} />
-						))}
+					<ul className={AddAnimClass('fadeInUp') + "listado-pedidos"}>
+						{
+							pedidos.map((pedido) => (
+								<Pedido pedido={pedido} key={pedido._id} />
+							))
+						}
 					</ul>
-				: 
-					<h2>Aún no hay pedidos realizados</h2>
+				: <h2>Aún no hay pedidos realizados</h2>
 			}
-		</Fragment>
+		</div>
 	)
 }
 

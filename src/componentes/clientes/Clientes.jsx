@@ -1,11 +1,13 @@
-import React, { useContext, useEffect, useState, Fragment } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { Link, withRouter } from 'react-router-dom'
 import Toast from '../../helpers/Toast'
 import Cliente from './Cliente'
 import { CRMContext } from '../../context/CRMContext'
 import { consultarClientelaDeApi } from './handleCliente'
+import Resultados from '../helpers/Resultados'
+import { AddAnimClass } from '../../helpers/AddAnimateClass'
 
-function Clientes(props) {
+const Clientes = (props) => {
 	const [clientes, guardarClientes] = useState([])
 	const [auth] = useContext(CRMContext)
 
@@ -28,26 +30,28 @@ function Clientes(props) {
 	}
 
 	return (
-		<Fragment>
-			<h2>Clientes</h2>
+		<div className={AddAnimClass('fadeInRight')}>
+			<h2>
+				Clientes <Resultados len={clientes.length} />
+			</h2>
 			<Link 
 				className="btn btn-verde nvo-cliente" 
 				to={'/clientes/nuevo'}
-			>
-				<i className="fas fa-plus-circle"></i>
+			><i className="fas fa-plus-circle"></i>
 				Nuevo Cliente
 			</Link>
 			{
 				clientes.length > 0 ? 
-					<ul className="listado-clientes">
-						{clientes.map((cliente) => (
-							<Cliente key={cliente._id} cliente={cliente} />
-						))}
+					<ul className={AddAnimClass('fadeInUp') + "listado-clientes"}>
+						{
+							clientes.map((cliente) => (
+								<Cliente key={cliente._id} cliente={cliente} />
+							))
+						}
 					</ul>
-			 	: 
-					<h2>Aún no hay clientes dados de alta</h2>
+			 	: <h2>Aún no hay clientes dados de alta</h2>
 			}
-		</Fragment>
+		</div>
 	)
 }
 

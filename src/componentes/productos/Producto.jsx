@@ -1,13 +1,14 @@
 import React, { useContext } from 'react'
+import PropTypes from 'prop-types'
 import { Link, withRouter } from 'react-router-dom'
+import { CRMContext } from '../../context/CRMContext'
 import Swal from 'sweetalert2'
 import Toast from '../../helpers/Toast'
-import clienteAxios from '../../config/axios'
-import { CRMContext } from '../../context/CRMContext'
+import { deleteProduct } from './handleProducto'
 
-function Producto({ producto, history }) {
+const Producto = (props) => {
 	const [auth] = useContext(CRMContext)
-	const { _id, nombre, precio, imagen } = producto
+	const { _id, nombre, precio, imagen } = props.producto
 
 	const eliminarProducto = (idProducto) => {
 		Swal.fire({
@@ -21,39 +22,19 @@ function Producto({ producto, history }) {
 			cancelButtonText: 'No, cancelar',
 		}).then((resultado) => {
 			if (resultado.value) {
-				const url = `/productos/${idProducto}`
-				clienteAxios
-					.delete(url, {
-						headers: {
-							Authorization: `Bearer ${auth.token}`,
-						},
-					})
-					.then((response) => {
-						if (response.status === 200) {
-							if (response.data.error) {
-								Toast('warning', response.data.mensaje)
-							} else {
-								Toast('success', response.data.mensaje)
-							}
-						}
-					})
-					.catch((err) => {
-						if (err.response) {
-							if (err.response.data.error) {
-								Toast('error', err.response.data.mensaje)
-							} else {
-								Toast('error', err.response.data.mensaje)
-							}
-						} else {
-							Toast('error', 'Ha ocurrido un error')
-						}
-					})
+				deleteProduct(idProducto, auth.token, (res) => {
+					if(res.ok) {
+						Toast('success', res.msg)
+					} else {
+						Toast('warning', res.msg)
+					}
+				})
 			}
 		})
 	}
 
 	if (!auth.auth) {
-		history.push('/iniciar-sesion')
+		props.history.push('/iniciar-sesion')
 	}
 
 	return (
@@ -61,28 +42,40 @@ function Producto({ producto, history }) {
 			<div className="info-producto">
 				<p className="nombre">{nombre}</p>
 				<p className="precio">${precio}.-</p>
-				{imagen ? <img alt="Imagen de producto" src={imagen} /> : null}
+				{
+					imagen && <img alt="Imagen de producto" src={imagen} />
+				}
 			</div>
 			<div className="acciones">
-				<Link className="btn btn-azul" to={'/productos/editar/' + _id}>
-					<i className="fas fa-pen-alt"></i>
+				<Link 
+					className="btn btn-azul" 
+					to={'/productos/editar/' + _id}
+				><i className="fas fa-pen-alt"></i>
 					Editar Producto
 				</Link>
-				<Link className="btn btn-azul" to={'/productos/imagen/' + _id}>
-					<i className="fas fa-pen-alt"></i>
-					Editar Imagen
-				</Link>
+				{
+					!imagen &&
+						<Link 
+							className="btn btn-azul" 
+							to={'/productos/imagen/' + _id}
+						><i className="fas fa-pen-alt"></i>
+							Editar Imagen
+						</Link>
+				}
 				<button
 					type="button"
 					className="btn btn-rojo btn-eliminar"
 					onClick={() => eliminarProducto(_id)}
-				>
-					<i className="fas fa-times"></i>
+				><i className="fas fa-times"></i>
 					Eliminar Producto
 				</button>
 			</div>
 		</li>
 	)
+}
+
+Producto.propTypes = {
+	producto: PropTypes.object.isRequired
 }
 
 export default withRouter(Producto)

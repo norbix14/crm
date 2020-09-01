@@ -6,13 +6,18 @@ import React, {
   useState,
 } from 'react'
 import { withRouter } from 'react-router-dom'
+import { CRMContext } from '../../context/CRMContext'
 import Toast from '../../helpers/Toast'
-import clienteAxios from '../../config/axios'
 import FormBuscarProducto from './FormBuscarProducto'
 import FormCantidadProducto from './FormCantidadProducto'
-import { CRMContext } from '../../context/CRMContext'
+import FichaCliente from './FichaCliente'
+import {
+  consultarClienteDeApi,
+  addOrder,
+  searchProduct
+} from './handlePedido'
 
-function NuevoPedido(props) {
+const NuevoPedido = (props) => {
   const { id } = props.match.params
   const [auth] = useContext(CRMContext)
   const [cliente, guardarCliente] = useState({})
@@ -20,42 +25,22 @@ function NuevoPedido(props) {
   const [productos, guardarProductos] = useState([])
   const [total, guardarTotal] = useState(0)
 
-  const buscarProducto = async (e) => {
+  const buscarProducto = (e) => {
     e.preventDefault()
-    try {
-      const url = `/productos/busqueda/${busqueda}`
-      clienteAxios
-        .post(
-          url,
-          {
-            params: {
-              query: busqueda,
-            },
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${auth.token}`,
-            },
-          }
-        )
-        .then((response) => {
-          if (response.status === 200) {
-            if (response.data[0]) {
-              let productoResultado = response.data[0]
-              productoResultado.producto = response.data[0]._id
-              productoResultado.cantidad = 0
-              guardarProductos([...productos, productoResultado])
-            } else {
-              Toast('warning', 'Lo sentimos, no hay resultados')
-            }
-          }
-        })
-        .catch((err) => {
-          Toast('warning', 'Lo sentimos, error en la petición')
-        })
-    } catch (err) {
-      Toast('error', 'Ha ocurrido un error')
-    }
+    searchProduct(busqueda, auth.token, (res) => {
+      if(res.ok) {
+        if (res.data[0]) {
+          let productoResultado = res.data[0]
+          productoResultado.producto = res.data[0]._id
+          productoResultado.cantidad = 0
+          guardarProductos([...productos, productoResultado])
+        } else {
+          Toast('warning', 'Lo sentimos, no hay resultados')
+        }
+      } else {
+        Toast('warning', res.msg)
+      }
+    })
   }
 
   const leerDatosBusqueda = (e) => guardarBusqueda(e.target.value)
@@ -102,37 +87,22 @@ function NuevoPedido(props) {
       pedido: productos,
       total: total,
     }
-    const url = `/pedidos/nuevo/${id}`
-    const agregarPedido = await clienteAxios.post(url, pedido, {
-      headers: {
-        Authorization: `Bearer ${auth.token}`,
-      },
-    })
-    if (agregarPedido.status === 200) {
-      if (agregarPedido.data) {
-        if (agregarPedido.data.error) {
-          Toast('warning', 'No se ha podido agregar')
-        } else {
-          Toast('success', agregarPedido.data.mensaje)
-          props.history.push('/pedidos')
-        }
+    addOrder(id, pedido, auth.token, (res) => {
+      if(res.ok) {
+        Toast('success', res.msg)
+        props.history.push('/pedidos')
+      } else {
+        Toast('warning', res.msg)
       }
-    } else {
-      Toast('error', 'Ha ocurrido un error')
-    }
+    })
   }
 
   useEffect(() => {
-    async function consultarAPI() {
-      const url = `/clientes/${id}`
-      const obtenerCliente = await clienteAxios.get(url, {
-        headers: {
-          Authorization: `Bearer ${auth.token}`,
-        },
-      })
-      guardarCliente(obtenerCliente.data)
-    }
-    consultarAPI()
+    consultarClienteDeApi(id, auth.token, (res) => {
+      if(res.ok) {
+        guardarCliente(res.data)
+      }
+    })
     actualizarTotal()
   }, [id, actualizarTotal, auth.token])
 
@@ -143,43 +113,37 @@ function NuevoPedido(props) {
   return (
     <Fragment>
       <h2>Nuevo pedido</h2>
-      <div className="ficha-cliente">
-        <h3>Datos de Cliente</h3>
-        <p>
-          Nombre: {cliente.nombre} {cliente.apellido}
-        </p>
-        <p>Teléfono: {cliente.telefono}</p>
-        <p>Email: {cliente.email}</p>
-        <p>Empresa: {cliente.empresa}</p>
-      </div>
+      <FichaCliente cliente={cliente} />
       <FormBuscarProducto
         buscarProducto={buscarProducto}
         leerDatosBusqueda={leerDatosBusqueda}
       />
       <ul className="resumen">
-        {productos.map((producto, index) => (
-          <FormCantidadProducto
-            producto={producto}
-            key={producto.producto}
-            restarProductos={restarProductos}
-            sumarProductos={sumarProductos}
-            eliminarProductoPedido={eliminarProductoPedido}
-            index={index}
-          />
-        ))}
+        {
+          productos.map((producto, index) => (
+            <FormCantidadProducto
+              producto={producto}
+              key={producto.producto}
+              restarProductos={restarProductos}
+              sumarProductos={sumarProductos}
+              eliminarProductoPedido={eliminarProductoPedido}
+              index={index}
+            />
+          ))
+        }
       </ul>
-      <p className="total">
-        Total a pagar: <span>${total}.-</span>
-      </p>
-      {total > 0 && (
-        <form onSubmit={realizarPedido}>
-          <input
-            type="submit"
-            className="btn btn-verde btn-block"
-            value="Realizar el pedido"
-          />
-        </form>
-      )}
+      <p className="total">Total: <span>${total}.-</span></p>
+      {
+        total > 0 && (
+          <form onSubmit={realizarPedido}>
+            <input
+              type="submit"
+              className="btn btn-verde btn-block"
+              value="Realizar el pedido"
+            />
+          </form>
+        )
+      }
     </Fragment>
   )
 }

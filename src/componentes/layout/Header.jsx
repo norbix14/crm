@@ -3,7 +3,7 @@ import { withRouter } from 'react-router-dom'
 import Toast from '../../helpers/Toast'
 import { CRMContext } from '../../context/CRMContext'
 
-function Header(props) {
+const Header = (props) => {
 	const [ auth, guardarAuth ] = useContext(CRMContext)
     
 	const cerrarSesion = () => {

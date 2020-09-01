@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-function FormBuscarProducto({buscarProducto, leerDatosBusqueda}) (
+const FormBuscarProducto = ({buscarProducto, leerDatosBusqueda}) => (
   <form onSubmit={buscarProducto}>
     <legend>Busca un producto y agrega una cantidad</legend>
     <div className="campo">
@@ -13,7 +13,11 @@ function FormBuscarProducto({buscarProducto, leerDatosBusqueda}) (
         onChange={leerDatosBusqueda}
       />
     </div>
-    <input type="submit" value="Buscar" className="btn btn-azul btn-block" />
+    <input 
+      type="submit" 
+      value="Buscar" 
+      className="btn btn-azul btn-block"
+    />
   </form>
 )
 

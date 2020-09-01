@@ -1,6 +1,6 @@
 import Swal from 'sweetalert2'
 
-const Toast = (icon = 'success', title = 'Acción realizada') => {
+const Toast = (icon = 'success', title = 'Correcto') => {
 	const ToastFire = Swal.mixin({
 		toast: true,
 		position: 'top-end',

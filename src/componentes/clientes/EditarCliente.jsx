@@ -1,10 +1,12 @@
-import React, { Fragment, useContext, useState, useEffect } from 'react'
-import Toast from '../../helpers/Toast'
+import React, { useContext, useState, useEffect } from 'react'
 import { withRouter } from 'react-router-dom'
 import { CRMContext } from '../../context/CRMContext'
+import Toast from '../../helpers/Toast'
+import { validateFields } from '../../helpers/Validator'
 import { editCliente, consultarClientelaDeApi } from './handleCliente'
+import FormCliente from './FormCliente'
 
-function EditarCliente(props) {
+const EditarCliente = (props) => {
 	const { id } = props.match.params
 	const [auth] = useContext(CRMContext)
 	const [cliente, datosCliente] = useState({
@@ -15,34 +17,28 @@ function EditarCliente(props) {
 		telefono: '',
 	})
 
-	const actualizarState = (e) => {
+	const handleChange = (e) => {
 		datosCliente({
 			...cliente,
 			[e.target.name]: e.target.value,
 		})
 	}
 
-	const validarCliente = () => {
-		const { nombre, apellido, empresa, email, telefono } = cliente
-		let valido =
-			!nombre.length ||
-			!apellido.length ||
-			!empresa.length ||
-			!email.length ||
-			!telefono.length
-		return valido
-	}
-
 	const handleSubmit = (e) => {
 		e.preventDefault()
-		editCliente(cliente._id, cliente, auth.token, (res) => {
-			if (res.ok) {
-				Toast('success', res.msg)
-				props.history.push('/clientes')
-			} else {
-				Toast('warning', res.msg)
-			}
-		})
+		const passed = validateFields(cliente)
+		if(passed.valid) {
+			editCliente(cliente._id, cliente, auth.token, (res) => {
+				if (res.ok) {
+					Toast('success', res.msg)
+					props.history.push('/clientes')
+				} else {
+					Toast('warning', res.msg)
+				}
+			})
+		} else {
+			return Toast('warning', passed.msg)
+		}
 	}
 
 	useEffect(() => {
@@ -64,76 +60,13 @@ function EditarCliente(props) {
 	}
 
 	return (
-		<Fragment>
-			<h2>Editar Cliente</h2>
-			<form onSubmit={handleSubmit}>
-				<legend>Llena todos los campos</legend>
-				<div className="campo">
-					<label>Nombre:</label>
-					<input
-						type="text"
-						placeholder="Nombre Cliente"
-						name="nombre"
-						autoFocus
-						required
-						onChange={actualizarState}
-						value={cliente.nombre}
-					/>
-				</div>
-				<div className="campo">
-					<label>Apellido:</label>
-					<input
-						type="text"
-						placeholder="Apellido Cliente"
-						name="apellido"
-						required
-						onChange={actualizarState}
-						value={cliente.apellido}
-					/>
-				</div>
-				<div className="campo">
-					<label>Empresa:</label>
-					<input
-						type="text"
-						placeholder="Empresa Cliente"
-						name="empresa"
-						required
-						onChange={actualizarState}
-						value={cliente.empresa}
-					/>
-				</div>
-				<div className="campo">
-					<label>Email:</label>
-					<input
-						type="email"
-						placeholder="Email Cliente"
-						name="email"
-						required
-						onChange={actualizarState}
-						value={cliente.email}
-					/>
-				</div>
-				<div className="campo">
-					<label>Teléfono:</label>
-					<input
-						type="tel"
-						placeholder="Teléfono Cliente"
-						name="telefono"
-						required
-						onChange={actualizarState}
-						value={cliente.telefono}
-					/>
-				</div>
-				<div className="enviar">
-					<input
-						type="submit"
-						className="btn btn-azul"
-						value="Guardar cambios"
-						disabled={validarCliente()}
-					/>
-				</div>
-			</form>
-		</Fragment>
+	  <FormCliente 
+			action="Editar cliente"
+			titulo="Editar datos del cliente"
+			cliente={cliente}
+			handleSubmit={handleSubmit}
+			handleChange={handleChange}
+		/>
 	)
 }
 
