@@ -1,15 +1,17 @@
 ## CRM CLIENTE
 
-## API para la administracion de clientes en React
+Administracion de clientes en React
 
-## Clonar repositorio (y elegir rama)
+## Pasos
 
-### `git clone <repository> --branch <master/dev> <directory>`
+Clonar repositorio
 
-## Instalar las dependencias necesarias
+### `git clone <repository> --branch <dev> <directory>`
+
+Instalar las dependencias necesarias
 
 ### `npm i`
 
-## Ejecutar la [App](http://localhost:3000)
+Ejecutar [App](http://localhost:3000)
 
 ### `npm start`
