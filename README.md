@@ -28,7 +28,7 @@ Instalar las dependencias necesarias
 
 Ejecutar **[App](http://localhost:3000)** en modo de desarrollo
 
-*`npm start`**
+**`npm start`**
 
 Crear **`build`** de producción
 
