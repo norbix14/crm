@@ -1,15 +1,17 @@
-import React, { useState } from 'react'
+import { useState, createContext } from 'react'
 
-const CRMContext = React.createContext([{}, () => {}])
+const CRMContext = createContext([{}, () => {}])
 
 const CRMProvider = (props) => {
-	const [ auth, guardarAuth ] = useState({
-		token: '',
-		auth: false
-	})
+	const token = localStorage.getItem('token') || null
+	const logged = !!token
+
+	const initialState = { token, logged }
+
+	const [ auth, setAuth ] = useState(initialState)
 
 	return (
-		<CRMContext.Provider value={[auth, guardarAuth]}>
+		<CRMContext.Provider value={[ auth, setAuth ]}>
 			{
 				props.children
 			}

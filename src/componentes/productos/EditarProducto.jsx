@@ -1,66 +1,104 @@
-import React, { useContext, useState, useEffect } from 'react'
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useState
+} from 'react'
 import { withRouter } from 'react-router-dom'
 import { CRMContext } from '../../context/CRMContext'
-import Toast from '../../helpers/Toast'
+import { Toast } from '../../helpers/SweetAlert'
 import FormProducto from './FormProducto'
 import {
   editProduct,
-  consultarProductoApi
-} from './handleProducto'
+  findProduct
+} from './handleProducts'
 
+/**
+ * Componente para editar un producto
+ * 
+ * @param {object} props - component props
+*/
 const EditarProducto = (props) => {
-  const { id } = props.match.params
-  const [auth] = useContext(CRMContext)
-  const [producto, guardarProducto] = useState({
-    nombre: '',
-    precio: '',
-  })
+  const [ auth ] = useContext(CRMContext)
 
-  const leerInfoProducto = (e) => {
-    guardarProducto({
-      ...producto,
-      [e.target.name]: e.target.value,
+  const { token, logged } = auth
+
+  const { history, match } = props
+
+  if (!logged) {
+    history.push('/iniciar-sesion')
+  }
+
+  const { id } = match.params
+
+  const initialState = {
+    nombre: '',
+    precio: ''
+  }
+
+  const [ product, setProduct ] = useState(initialState)
+
+  const handleInputChange = (e) => {
+    const { target } = e
+    const { name, value } = target
+    setProduct(prevState => {
+      return {
+        ...prevState,
+        [name]: value
+      }
     })
   }
 
-  const actualizarProducto = async (e) => {
-    e.preventDefault()
-    const { nombre, precio } = producto
-    const data = {
-      nombre,
-      precio,
-    }
-    editProduct(id, data, auth.token, (res) => {
-      if(res.ok) {
-        Toast('success', res.msg)
-        props.history.push('/productos')
-      } else {
-        Toast('warning', res.msg)
+  const handleProductData = useCallback(async () => {
+    try {
+      const {
+        data,
+        response = null
+      } = await findProduct(id, token)
+      if (response) {
+        const { data } = response
+        const { message } = data
+        return Toast('warning', message)
       }
-    })
+      const { details } = data
+      const { product } = details
+      setProduct(product)
+    } catch (error) {
+      return Toast('error', 'Ha ocurrido un error')
+    }
+  }, [id, token])
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      const {
+        data,
+        response = null
+      } = await editProduct(id, product, token)
+      if (response) {
+        const { data } = response
+        const { message } = data
+        return Toast('warning', message)
+      }
+      const { message } = data
+      Toast('success', message)
+      history.push('/productos')
+    } catch (error) {
+      return Toast('error', 'Ha ocurrido un error')
+    }
   }
 
   useEffect(() => {
-    consultarProductoApi(id, auth.token, (res) => {
-      if(res.ok) {
-        guardarProducto(res.data)
-      } else {
-        guardarProducto({})
-      }
-    })
-  }, [id, auth.token])
-
-  if (!auth.auth) {
-    props.history.push('/iniciar-sesion')
-  }
+    handleProductData()
+  }, [handleProductData])
 
   return (
     <FormProducto
-      titulo="Editar un producto"
+      title="Editar un producto"
       action="Editar producto"
-      defaultVal={producto}
-      handleSubmit={actualizarProducto}
-      handleChange={leerInfoProducto}
+      defaultVal={product}
+      handleSubmit={handleSubmit}
+      handleInputChange={handleInputChange}
     />
   )
 }

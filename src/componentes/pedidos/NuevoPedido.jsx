@@ -1,5 +1,4 @@
-import React, {
-  Fragment,
+import {
   useCallback,
   useContext,
   useEffect,
@@ -7,144 +6,116 @@ import React, {
 } from 'react'
 import { withRouter } from 'react-router-dom'
 import { CRMContext } from '../../context/CRMContext'
-import Toast from '../../helpers/Toast'
+import { Toast } from '../../helpers/SweetAlert'
+import {
+  calculateTotal,
+  checkRepeated
+} from '../../helpers/OrderUtils'
 import FormBuscarProducto from './FormBuscarProducto'
 import FormCantidadProducto from './FormCantidadProducto'
 import FichaCliente from './FichaCliente'
-import {
-  consultarClienteDeApi,
-  addOrder,
-  searchProduct
-} from './handlePedido'
+import RealizarPedido from './RealizarPedido'
+import { findClientData } from './handleOrders'
 
+/**
+ * Componente para agregar un nuevo pedido
+ * 
+ * @param {object} props - component props
+*/
 const NuevoPedido = (props) => {
-  const { id } = props.match.params
-  const [auth] = useContext(CRMContext)
-  const [cliente, guardarCliente] = useState({})
-  const [busqueda, guardarBusqueda] = useState('')
-  const [productos, guardarProductos] = useState([])
-  const [total, guardarTotal] = useState(0)
+  const [ auth ] = useContext(CRMContext)
 
-  const buscarProducto = (e) => {
-    e.preventDefault()
-    searchProduct(busqueda, auth.token, (res) => {
-      if(res.ok) {
-        if (res.data[0]) {
-          let productoResultado = res.data[0]
-          productoResultado.producto = res.data[0]._id
-          productoResultado.cantidad = 0
-          guardarProductos([...productos, productoResultado])
-        } else {
-          Toast('warning', 'Lo sentimos, no hay resultados')
-        }
-      } else {
-        Toast('warning', res.msg)
+  const { token, logged } = auth
+
+  const { history, match } = props
+
+  if (!logged) {
+    history.push('/iniciar-sesion')
+  }
+
+  const { id } = match.params
+
+  const [ total, setTotal ] = useState(0)
+  const [ client, setClient ] = useState({})
+  const [ products, setProducts ] = useState([])
+
+  const updateTotal = useCallback(() => {
+    const newTotal = calculateTotal(products)
+    setTotal(newTotal)
+  }, [products])
+
+  const findClient = useCallback(async () => {
+    try {
+      const {
+        data,
+        response = null
+      } = await findClientData(id, token)
+      if (response) {
+        const { data } = response
+        const { message } = data
+        return Toast('warning', message)
       }
-    })
-  }
-
-  const leerDatosBusqueda = (e) => guardarBusqueda(e.target.value)
-
-  const restarProductos = (i) => {
-    const todosProductos = [...productos]
-    if (todosProductos[i].cantidad === 0) return
-    todosProductos[i].cantidad--
-    guardarProductos(todosProductos)
-    actualizarTotal()
-  }
-
-  const sumarProductos = (i) => {
-    const todosProductos = [...productos]
-    todosProductos[i].cantidad++
-    guardarProductos(todosProductos)
-    actualizarTotal()
-  }
-
-  const actualizarTotal = useCallback(() => {
-    if (productos.length === 0) {
-      guardarTotal(0)
-      return
+      const { details } = data
+      const { client } = details
+      setClient(client)
+    } catch (error) {
+      return Toast('error', 'Ha ocurrido un error')
     }
-    let nuevoTotal = 0
-    productos.map(
-      (producto) => (nuevoTotal += producto.cantidad * producto.precio)
-    )
-    guardarTotal(nuevoTotal)
-  }, [productos])
+  }, [id, token])
 
-  const eliminarProductoPedido = (id) => {
-    const productosFiltrados = productos.filter(
-      (producto) => producto.producto !== id
-    )
-    guardarProductos(productosFiltrados)
-  }
-
-  const realizarPedido = async (e) => {
-    e.preventDefault()
-    const { id } = props.match.params
-    const pedido = {
-      cliente: id,
-      pedido: productos,
-      total: total,
-    }
-    addOrder(id, pedido, auth.token, (res) => {
-      if(res.ok) {
-        Toast('success', res.msg)
-        props.history.push('/pedidos')
-      } else {
-        Toast('warning', res.msg)
+  const addProductToList = (product) => {
+    setProducts(prevState => {
+      if (prevState.length <= 0) {
+        return [
+          ...prevState,
+          product
+        ]
       }
+      return checkRepeated(prevState, product)
     })
   }
 
   useEffect(() => {
-    consultarClienteDeApi(id, auth.token, (res) => {
-      if(res.ok) {
-        guardarCliente(res.data)
-      }
-    })
-    actualizarTotal()
-  }, [id, actualizarTotal, auth.token])
+    findClient()
+  }, [findClient])
 
-  if (!auth.auth) {
-    props.history.push('/iniciar-sesion')
-  }
+  useEffect(() => {
+    updateTotal()
+  }, [updateTotal])
 
   return (
-    <Fragment>
+    <>
       <h2>Nuevo pedido</h2>
-      <FichaCliente cliente={cliente} />
+      <FichaCliente
+        client={client}
+       />
       <FormBuscarProducto
-        buscarProducto={buscarProducto}
-        leerDatosBusqueda={leerDatosBusqueda}
+        token={token}
+        addProductToList={addProductToList}
       />
       <ul className="resumen">
         {
-          productos.map((producto, index) => (
-            <FormCantidadProducto
-              producto={producto}
-              key={producto.producto}
-              restarProductos={restarProductos}
-              sumarProductos={sumarProductos}
-              eliminarProductoPedido={eliminarProductoPedido}
-              index={index}
-            />
-          ))
+          products.length > 0 && (
+            products.map((product) => (
+              <FormCantidadProducto
+                key={product._id}
+                product={product}
+                setProducts={setProducts}
+              />
+            ))
+          )
         }
       </ul>
-      <p className="total">Total: <span>${total}.-</span></p>
-      {
-        total > 0 && (
-          <form onSubmit={realizarPedido}>
-            <input
-              type="submit"
-              className="btn btn-verde btn-block"
-              value="Realizar el pedido"
-            />
-          </form>
-        )
-      }
-    </Fragment>
+      <p className="total">
+        Total: <span>${total}.-</span>
+      </p>
+      <RealizarPedido
+        idClient={id}
+        products={products}
+        total={total}
+        token={token}
+      />
+    </>
   )
 }
 

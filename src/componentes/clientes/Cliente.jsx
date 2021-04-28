@@ -1,43 +1,63 @@
-import React, { useContext } from 'react'
+import { useContext } from 'react'
 import PropTypes from 'prop-types'
 import { Link, withRouter } from 'react-router-dom'
-import Swal from 'sweetalert2'
-import Toast from '../../helpers/Toast'
 import { CRMContext } from '../../context/CRMContext'
-import { deleteCliente } from './handleCliente'
+import { Toast, SwalDelete } from '../../helpers/SweetAlert'
+import { deleteClient } from './handleClients'
 
+/**
+ * Componente para mostrar datos de un cliente y
+ * que muestra las acciones que se pueden realizar
+ * como `Editar`, `Eliminar`, etc
+ *
+ * @param {object} props - component props
+ * @param {object} props.client - client data
+ * @param {function} props.updateClientList - function
+ * to update client list
+*/
 const Cliente = (props) => {
-	const [auth] = useContext(CRMContext)
+	const [ auth ] = useContext(CRMContext)
 
-	const {_id, nombre, apellido, 
-		empresa, email, telefono } = props.cliente
+	const { token, logged } = auth
 
-	const eliminarCliente = (idCliente) => {
-		Swal.fire({
-			title: '¿Estas seguro?',
-			text: 'Esto no se puede revertir',
-			icon: 'warning',
-			showCancelButton: true,
-			confirmButtonColor: '#3085d6',
-			cancelButtonColor: '#d33',
-			confirmButtonText: 'Si, borrar',
-			cancelButtonText: 'No, cancelar',
-		})
-		.then((resultado) => {
-			if (resultado.value) {
-				deleteCliente(idCliente, auth.token, (res) => {
-					if (res.ok) {
-						Toast('success', res.msg)
-					} else {
-						Toast('warning', res.msg)
-					}
-				})
-			}
-		})
+	const {
+		client,
+		updateClientList,
+		history
+	} = props
+
+	if (!logged) {
+		history.push('/iniciar-sesion')
 	}
 
-	if (!auth.auth) {
-		props.history.push('/iniciar-sesion')
+	const {
+		_id,
+		nombre,
+		apellido,
+		empresa,
+		email,
+		telefono
+	} = client
+
+	const handleDeleteClick = () => {
+		SwalDelete(async () => {
+			try {
+				const {
+					data,
+					response = null
+				} = await deleteClient(_id, token)
+				if (response) {
+					const { data } = response
+					const { message } = data
+					return Toast('warning', message)
+				}
+				const { message } = data
+				updateClientList(_id)
+				return Toast('success', message)
+			} catch (error) {
+				return Toast('error', 'Ha ocurrido un error')
+			}
+		})
 	}
 
 	return (
@@ -64,7 +84,7 @@ const Cliente = (props) => {
 				<button
 					type="button"
 					className="btn btn-rojo btn-eliminar"
-					onClick={() => eliminarCliente(_id)}
+					onClick={handleDeleteClick}
 				><i className="fas fa-times"></i>
 					Eliminar Cliente
 				</button>
@@ -74,7 +94,8 @@ const Cliente = (props) => {
 }
 
 Cliente.propTypes = {
-	cliente: PropTypes.object.isRequired
+	client: PropTypes.object.isRequired,
+	updateClientList: PropTypes.func.isRequired
 }
 
 export default withRouter(Cliente)

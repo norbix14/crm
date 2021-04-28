@@ -1,50 +1,83 @@
-import React, {
+import {
+	useCallback,
 	useContext, 
 	useState, 
 	useEffect
 } from 'react'
 import { withRouter } from 'react-router-dom'
 import { CRMContext } from '../../context/CRMContext'
-import Pedido from './Pedido'
-import Toast from '../../helpers/Toast'
-import { searchOrders } from './handlePedido'
-import Resultados from '../helpers/Resultados'
+import { Toast } from '../../helpers/SweetAlert'
 import { AddAnimClass } from '../../helpers/AddAnimateClass'
+import Resultados from '../helpers/Resultados'
+import Pedido from './Pedido'
+import { findOrders } from './handleOrders'
 
+/**
+ * Componente que muestra todos los pedidos realizados
+ * 
+ * @param {object} props - component props
+*/
 const Pedidos = (props) => {
-	const [pedidos, guardarPedidos] = useState([])
-	const [auth] = useContext(CRMContext)
+	const [ auth ] = useContext(CRMContext)
+
+	const { token, logged } = auth
+
+	const { history } = props
+
+	if (!logged) {
+		history.push('/iniciar-sesion')
+	}
+
+	const [ orders, setOrders ] = useState([])
+
+	const getOrders = useCallback(async () => {
+		try {
+			const {
+				data,
+				response = null
+			} = await findOrders(token)
+			if (response) {
+				const { data } = response
+				const { message } = data
+				return Toast('warning', message)
+			}
+			const { details } = data
+			const { orders } = details
+			setOrders(orders)
+		} catch (error) {
+			return Toast('error', 'Ha ocurrido un error')
+		}
+	}, [token])
+
+	const updateOrderList = (id) => {
+		setOrders(prevState => {
+			return prevState.filter(
+				prod => prod._id !== id
+			)
+		})
+	}
 
 	useEffect(() => {
-		if (auth.token !== '') {
-			searchOrders(auth.token, (res) => {
-				if(res.ok) {
-					guardarPedidos(res.data)
-				} else {
-					guardarPedidos([])
-					Toast('warning', res.msg)
-				}
-			})
-		} else {
-			props.history.push('/iniciar-sesion')
-		}
-	}, [auth.token, props.history])
-
-	if (!auth.auth) {
-		props.history.push('/iniciar-sesion')
-	}
+		getOrders()
+	}, [getOrders])
 
 	return (
 		<div className={AddAnimClass('fadeInRight')}>
 			<h2>
-				Pedidos <Resultados len={pedidos.length} />
+				Pedidos <Resultados len={orders.length} />
 			</h2>
 			{
-				pedidos.length > 0 ?
-					<ul className={AddAnimClass('fadeInUp') + "listado-pedidos"}>
+				orders.length > 0 ?
+					<ul
+						className={AddAnimClass('fadeInUp') + "listado-pedidos"}
+					>
 						{
-							pedidos.map((pedido) => (
-								<Pedido pedido={pedido} key={pedido._id} />
+							orders.map((order) => (
+								<Pedido
+									key={order._id}
+									order={order}
+									updateOrderList={updateOrderList}
+								/>
 							))
 						}
 					</ul>

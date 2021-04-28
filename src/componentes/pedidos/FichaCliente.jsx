@@ -1,9 +1,21 @@
-import React from 'react'
 import PropTypes from 'prop-types'
 
-const FichaCliente = ({cliente}) => {
-	const { nombre, apellido, telefono, 
-					email, empresa } = cliente
+/**
+ * Componente que muestra datos del cliente
+ * 
+ * @param {object} props - component props
+ * @param {object} props.client - client data
+*/
+const FichaCliente = (props) => {
+	const { client } = props
+
+	const {
+		nombre,
+		apellido,
+		telefono,
+		email,
+		empresa
+	} = client
 
 	return (
 		<div className="ficha-cliente">
@@ -17,7 +29,7 @@ const FichaCliente = ({cliente}) => {
 }
 
 FichaCliente.propTypes = {
-	cliente: PropTypes.object.isRequired
+	client: PropTypes.object.isRequired
 }
 
 export default FichaCliente

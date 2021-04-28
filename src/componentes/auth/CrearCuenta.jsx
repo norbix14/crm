@@ -1,34 +1,45 @@
-import React, { useState } from 'react'
 import { withRouter, Link } from 'react-router-dom'
-import Toast from '../../helpers/Toast'
-import { validateFields } from '../../helpers/Validator'
-import { crearUsuario } from './handleUser'
+import { Toast } from '../../helpers/SweetAlert'
+import useHandlerInputChange from '../../hooks/useHandlerInputChange'
 import FormCrearCuenta from './FormCrearCuenta'
+import { signup } from './handleAuth'
 
+/**
+ * Componente para crear cuenta
+ *
+ * @param {object} props - component props
+*/
 const CrearCuenta = (props) => {
-	const [ usuario, guardarUsuario ] = useState({})
+	const { history } = props
 
-	const leerDatos = e => {
-		guardarUsuario({
-			...usuario,
-			[e.target.name]: e.target.value
-		})
+	const initialState = {
+		email: '',
+		nombre: '',
+		password: ''
 	}
 
-	const handleSubmit = e => {
+	const [
+		values,
+		handleInputChange
+	] = useHandlerInputChange(initialState)
+
+	const handleSubmit = async (e) => {
 		e.preventDefault()
-		const passed = validateFields(usuario)
-		if(passed.valid) {
-			crearUsuario(usuario, (res) => {
-				if(res.ok) {
-					Toast('success', res.msg)
-					props.history.push('/iniciar-sesion')
-				} else {
-					Toast('error', res.msg)
-				}
-			})
-		} else {
-			Toast('warning', passed.msg)
+		try {
+			const {
+				data,
+				response = null
+			} = await signup(values)
+			if (response) {
+				const { data } = response
+				const { message } = data
+				return Toast('warning', message)
+			}
+			const { message } = data
+			Toast('success', message)
+			history.push('/iniciar-sesion')
+		} catch (error) {
+			return Toast('error', 'Ha ocurrido un error')
 		}
 	}
 
@@ -38,8 +49,9 @@ const CrearCuenta = (props) => {
 			<Link to="/iniciar-sesion">Iniciar sesión</Link>
 			<div className="contenedor-formulario">
 				<FormCrearCuenta
+					values={values}
 					handleSubmit={handleSubmit}
-					leerDatos={leerDatos}
+					handleInputChange={handleInputChange}
 				/>
 			</div>
 		</div>

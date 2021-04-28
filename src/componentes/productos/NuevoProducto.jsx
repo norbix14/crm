@@ -1,52 +1,60 @@
-import React, { useContext, useState } from 'react'
+import { useContext } from 'react'
 import { withRouter } from 'react-router-dom'
 import { CRMContext } from '../../context/CRMContext'
-import Toast from '../../helpers/Toast'
+import useHandlerInputChange from '../../hooks/useHandlerInputChange'
+import { Toast } from '../../helpers/SweetAlert'
 import FormProducto from './FormProducto'
-import { addProduct } from './handleProducto'
-import { validateFields } from '../../helpers/Validator'
+import { addProduct } from './handleProducts'
 
+/**
+ * Componente para agregar un nuevo producto
+ * 
+ * @param {object} props - component props
+*/
 const NuevoProducto = (props) => {
-  const [auth] = useContext(CRMContext)
-  const [producto, guardarProducto] = useState({
+  const [ auth ] = useContext(CRMContext)
+
+  const { token, logged } = auth
+
+  const { history } = props
+
+  if (!logged) {
+    history.push('/iniciar-sesion')
+  }
+
+  const initialState = {
     nombre: '',
-    precio: '',
-  })
-
-  const leerInfoProducto = (e) => {
-    guardarProducto({
-      ...producto,
-      [e.target.name]: e.target.value,
-    })
+    precio: ''
   }
 
-  const agregarProducto = async (e) => {
+  const [
+    product,
+    handleInputChange
+  ] = useHandlerInputChange(initialState)
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const passed = validateFields(producto)
-    if(passed.valid) {
-      addProduct(producto, auth.token, (res) => {
-        if(res.ok) {
-          Toast('success', res.msg)
-          props.history.push('/productos')
-        } else {
-          Toast('warning', res.msg)
-        }
-      })
-    } else {
-      return Toast('warning', passed.msg)
+    const {
+      data,
+      response = null
+    } = await addProduct(product, token)
+    if (response) {
+      const { data } = response
+      const { message } = data
+      return Toast('warning', message)
     }
-  }
-
-  if (!auth.auth) {
-    props.history.push('/iniciar-sesion')
+    const { message } = data
+    Toast('success', message)
+    history.push('/productos')
   }
 
   return (
     <FormProducto
-      titulo="Agregar un nuevo producto"
+      title="Agregar un nuevo producto"
       action="Agregar producto"
-      handleSubmit={agregarProducto}
-      handleChange={leerInfoProducto}
+      defaultVal={product}
+      handleSubmit={handleSubmit}
+      handleInputChange={handleInputChange}
     />
   )
 }

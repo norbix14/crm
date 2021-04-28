@@ -1,6 +1,9 @@
-import React from 'react'
 import './Spinner.css'
 
+/**
+ * Componente que muestra un spinner
+ * o loader
+*/
 const Spinner = () => (
 	<div className="spinner">
 		<div className="bounce1"></div>

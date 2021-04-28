@@ -1,72 +1,99 @@
-import React from 'react'
 import PropTypes from 'prop-types'
 
+/**
+ * Componente para mostrar un formulario
+ *
+ * @param {object} props - component props
+ * @param {string} props.action - a string with the name 
+ * of the action like `Add client`, `Save client` for the 
+ * button
+ * @param {object} props.client - client data
+ * @param {string} props.title - some title to show in the 
+ * form
+ * @param {function} props.handleSubmit - function to handle the
+ * submit event
+ * @param {function} props.handleInputChange - function to handle
+ * the input change event
+*/
 const FormCliente = (props) => {
 	const {
-		action, 
-		cliente, 
-		titulo, 
-		handleSubmit, 
-		handleChange
+		action,
+		client,
+		title,
+		handleSubmit,
+		handleInputChange
 	} = props
-	
+
+	const {
+		nombre,
+		apellido,
+		empresa,
+		email,
+		telefono
+	} = client
+
 	return (
 		<form onSubmit={handleSubmit}>
-			<legend>{titulo}</legend>
+			<legend>{title}</legend>
 			<div className="campo">
-				<label>Nombre:</label>
+				<label htmlFor="nombre">Nombre:</label>
 				<input
 					type="text"
 					placeholder="Nombre Cliente"
 					name="nombre"
+					id="nombre"
 					autoFocus
 					required
-					onChange={handleChange}
-					value={cliente.nombre}
+					onChange={handleInputChange}
+					value={nombre}
 				/>
 			</div>
 			<div className="campo">
-				<label>Apellido:</label>
+				<label htmlFor="apellido">Apellido:</label>
 				<input
 					type="text"
 					placeholder="Apellido Cliente"
 					name="apellido"
+					id="apellido"
 					required
-					onChange={handleChange}
-					value={cliente.apellido}
+					onChange={handleInputChange}
+					value={apellido}
 				/>
 			</div>
 			<div className="campo">
-				<label>Empresa:</label>
+				<label htmlFor="empresa">Empresa:</label>
 				<input
 					type="text"
 					placeholder="Empresa Cliente"
 					name="empresa"
+					id="empresa"
 					required
-					onChange={handleChange}
-					value={cliente.empresa}
+					onChange={handleInputChange}
+					value={empresa}
 				/>
 			</div>
 			<div className="campo">
-				<label>Email:</label>
+				<label htmlFor="email">Email:</label>
 				<input
 					type="email"
 					placeholder="Email Cliente"
 					name="email"
+					id="email"
 					required
-					onChange={handleChange}
-					value={cliente.email}
+					onChange={handleInputChange}
+					value={email}
 				/>
 			</div>
 			<div className="campo">
-				<label>Teléfono:</label>
+				<label htmlFor="telefono">Teléfono:</label>
 				<input
 					type="tel"
 					placeholder="Teléfono Cliente"
 					name="telefono"
+					id="telefono"
 					required
-					onChange={handleChange}
-					value={cliente.telefono}
+					onChange={handleInputChange}
+					value={telefono}
 				/>
 			</div>
 			<div className="enviar">
@@ -82,10 +109,10 @@ const FormCliente = (props) => {
 
 FormCliente.propTypes = {
 	action: PropTypes.string.isRequired,
-	cliente: PropTypes.object.isRequired,
-	titulo: PropTypes.string.isRequired,
+	client: PropTypes.object.isRequired,
+	title: PropTypes.string.isRequired,
 	handleSubmit: PropTypes.func.isRequired,
-	handleChange: PropTypes.func.isRequired
+	handleInputChange: PropTypes.func.isRequired
 }
 
 export default FormCliente

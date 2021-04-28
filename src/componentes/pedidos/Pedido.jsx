@@ -1,88 +1,107 @@
-import React, { useContext } from 'react'
+import { useContext } from 'react'
 import { withRouter } from 'react-router-dom'
+import PropTypes from 'prop-types'
 import { CRMContext } from '../../context/CRMContext'
-import Swal from 'sweetalert2'
-import Toast from '../../helpers/Toast'
-import { deleteOrder } from './handlePedido'
+import { Toast, SwalDelete } from '../../helpers/SweetAlert'
+import Articulo from './Articulo'
+import { deleteOrder } from './handleOrders'
 
-const Pedido = ({pedido, history}) => {
-	const [auth] = useContext(CRMContext)
+/**
+ * Componente que muestra datos del pedido
+ * 
+ * @param {object} props - component props
+ * @param {object} props.order - order data
+ * @param {function} props.updateOrderList - function
+ * to update order list
+*/
+const Pedido = (props) => {
+	const [ auth ] = useContext(CRMContext)
 
-	const { cliente } = pedido
+	const { token, logged } = auth
 
-	const clientName = (client) => {
-		let nombreCompleto
-		if (client !== null) {
-			nombreCompleto = `${client.nombre} ${client.apellido}`
-		} else {
-			nombreCompleto = 'No existe el cliente'
-		}
-		return nombreCompleto
+	const {
+		order,
+		updateOrderList,
+		history
+	} = props
+
+	if (!logged) {
+		history.push('/iniciar-sesion')
 	}
 
-	const eliminarPedido = (idPedido) => {
-		Swal.fire({
-			title: '¿Estas seguro?',
-			text: 'Esto no se puede revertir',
-			icon: 'warning',
-			showCancelButton: true,
-			confirmButtonColor: '#3085d6',
-			cancelButtonColor: '#d33',
-			confirmButtonText: 'Si, borrar',
-			cancelButtonText: 'No, cancelar',
-		}).then((resultado) => {
-			if (resultado.value) {
-				deleteOrder(idPedido, auth.token, (res) => {
-					if(res.ok) {
-						Toast('success', res.msg)
-					} else {
-						Toast('warning', res.msg)
-					}
-				})
+	const {
+		_id,
+		cliente,
+		total,
+		pedido
+	} = order
+
+	const fullClientName = (obj) => {
+		if (obj !== null) {
+			return `${obj.nombre} ${obj.apellido}`
+		}
+		return 'Este cliente ya no existe'
+	}
+
+	const handleClickDelete = () => {
+		SwalDelete(async () => {
+			try {
+				const {
+					data,
+					response = null
+				} = await deleteOrder(_id, token)
+				if (response) {
+					const { data } = response
+					const { message } = data
+					return Toast('warning', message)
+				}
+				const { message } = data
+				Toast('success', message)
+				updateOrderList(_id)
+				history.push('/pedidos')
+			} catch (error) {
+				return Toast('error', 'Ha ocurrido un error')
 			}
 		})
-	}
-
-	if (!auth.auth) {
-		history.push('/iniciar-sesion')
 	}
 
 	return (
 		<li className="pedido">
 			<div className="info-pedido">
-				<p className="id">ID: {pedido._id}</p>
-				<p className="nombre">Cliente: {clientName(cliente)}</p>
+				<p className="id">Orden ID: {_id}</p>
+				<p className="nombre">Cliente: {fullClientName(cliente)}</p>
 				<div className="articulos-pedido">
-					<p className="productos">Artículos del pedido:</p>
+					<p className="productos">Artículos del pedido</p>
 					<ul>
 						{
-							pedido.pedido.map((articulo, i) =>
-								articulo.producto !== null ? (
-									<li key={pedido._id + articulo.producto._id}>
-										<p>Artículo: {articulo.producto.nombre}</p>
-										<p>Precio: ${articulo.producto.precio}.-</p>
-										<p>Cantidad: {articulo.cantidad}</p>
-									</li>
-								) : (
-									<li key={i}>Articulo eliminado del stock</li>
-								)
-							)
+							pedido.map((element, index) => (
+								<Articulo
+									key={element._id}
+									index={index}
+									element={element}
+								/>
+							))
 						}
 					</ul>
 				</div>
-				<p className="total">Total: ${pedido.total}.-</p>
+				<p className="total">Total: ${total}.-</p>
 			</div>
 			<div className="acciones">
 				<button
 					type="button"
 					className="btn btn-rojo btn-eliminar"
-					onClick={() => eliminarPedido(pedido._id)}
+					onClick={handleClickDelete}
 				><i className="fas fa-times"></i>
 					Eliminar Pedido
 				</button>
 			</div>
 		</li>
 	)
+}
+
+Pedido.propTypes = {
+	order: PropTypes.object.isRequired,
+	updateOrderList: PropTypes.func.isRequired,
 }
 
 export default withRouter(Pedido)

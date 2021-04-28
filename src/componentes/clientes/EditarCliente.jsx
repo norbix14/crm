@@ -1,71 +1,98 @@
-import React, { useContext, useState, useEffect } from 'react'
+import {
+	useCallback,
+	useContext,
+	useEffect
+} from 'react'
 import { withRouter } from 'react-router-dom'
 import { CRMContext } from '../../context/CRMContext'
-import Toast from '../../helpers/Toast'
-import { validateFields } from '../../helpers/Validator'
-import { editCliente, consultarClientelaDeApi } from './handleCliente'
+import useHandlerInputChange from '../../hooks/useHandlerInputChange'
+import { Toast } from '../../helpers/SweetAlert'
 import FormCliente from './FormCliente'
+import { editClient, findClient } from './handleClients'
 
+/**
+ * Componente para editar un cliente
+ *
+ * @param {object} props - component props
+*/
 const EditarCliente = (props) => {
-	const { id } = props.match.params
-	const [auth] = useContext(CRMContext)
-	const [cliente, datosCliente] = useState({
+	const [ auth ] = useContext(CRMContext)
+
+	const { token, logged } = auth
+
+	const { history, match } = props
+
+	if (!logged) {
+		history.push('/iniciar-sesion')
+	}
+
+	const { id } = match.params
+
+	const initialState = {
 		nombre: '',
 		apellido: '',
 		empresa: '',
 		email: '',
-		telefono: '',
-	})
-
-	const handleChange = (e) => {
-		datosCliente({
-			...cliente,
-			[e.target.name]: e.target.value,
-		})
+		telefono: ''
 	}
 
-	const handleSubmit = (e) => {
+	const [
+		client,
+		handleInputChange,
+		setClient
+	] = useHandlerInputChange(initialState)
+
+	const handleClientData = useCallback(async () => {
+		try {
+			const {
+				data,
+				response = null
+			} = await findClient(id, token)
+			if (response) {
+				const { data } = response
+				const { message } = data
+				return Toast('warning', message)
+			}
+			const { details } = data
+			const { client } = details
+			setClient(client)
+		} catch (error) {
+			return Toast('error', 'Ha ocurrido un error')
+		}
+	}, [id, token, setClient])
+
+	const handleSubmit = async (e) => {
 		e.preventDefault()
-		const passed = validateFields(cliente)
-		if(passed.valid) {
-			editCliente(cliente._id, cliente, auth.token, (res) => {
-				if (res.ok) {
-					Toast('success', res.msg)
-					props.history.push('/clientes')
-				} else {
-					Toast('warning', res.msg)
-				}
-			})
-		} else {
-			return Toast('warning', passed.msg)
+		try {
+			const { _id } = client
+			const {
+				data,
+				response = null
+			} = await editClient(_id, client, token)
+			if (response) {
+				const { data } = response
+				const { message } = data
+				return Toast('warning', message)
+			}
+			const { message } = data
+			Toast('success', message)
+			history.push('/clientes')
+		} catch (error) {
+			return Toast('error', 'Ha ocurrido un error')
 		}
 	}
 
 	useEffect(() => {
-		if (auth.token !== '') {
-			consultarClientelaDeApi(id, auth.token, (res) => {
-				if (res.ok) {
-					datosCliente(res.data)
-				} else {
-					Toast('warning', res.msg)
-				}
-			})
-		} else {
-			props.history.push('/iniciar-sesion')
-		}
-	}, [id, auth.token, props.history])
-
-	if (!auth.auth) {
-		props.history.push('/iniciar-sesion')
-	}
+		handleClientData()
+	}, [handleClientData])
 
 	return (
 	  <FormCliente 
 			action="Editar cliente"
-			titulo="Editar datos del cliente"
-			cliente={cliente}
+			title="Editar datos del cliente"
+			client={client}
+			handleInputChange={handleInputChange}
 			handleSubmit={handleSubmit}
-			handleChange={handleChange}
 		/>
 	)
 }

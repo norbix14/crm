@@ -2,14 +2,21 @@
 	"parser": "babel-eslint",
   "env": {
     "browser": true,
-    "node": true,
     "es6": true
   },
-  "ecmaFeatures": {
-    "modules": true,
-    "jsx": true
-  },
   "extends": [
+    "eslint:recommended",
     "prettier"
-  ]
+  ],
+  "plugins": [
+    "react",
+    "react-hooks"
+  ],
+  "rules": {
+    "semi": "off",
+    "no-undef": "warn",
+    "no-unused-vars": "warn",
+    "react-hooks/rules-of-hooks": "warn",
+    "react-hooks/exhaustive-deps": "warn"
+  }
 }

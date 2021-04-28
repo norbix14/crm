@@ -1,40 +1,52 @@
-import React, { useContext } from 'react'
+import { useContext } from 'react'
 import PropTypes from 'prop-types'
 import { Link, withRouter } from 'react-router-dom'
 import { CRMContext } from '../../context/CRMContext'
-import Swal from 'sweetalert2'
-import Toast from '../../helpers/Toast'
-import { deleteProduct } from './handleProducto'
+import { Toast, SwalDelete } from '../../helpers/SweetAlert'
+import { deleteProduct } from './handleProducts'
 
+/**
+ * Componente que muestra datos de un producto
+ * 
+ * @param {object} props - component props
+ * @param {object} props.product - product data
+*/
 const Producto = (props) => {
-	const [auth] = useContext(CRMContext)
-	const { _id, nombre, precio, imagen } = props.producto
+	const [ auth ] = useContext(CRMContext)
 
-	const eliminarProducto = (idProducto) => {
-		Swal.fire({
-			title: '¿Estas seguro?',
-			text: 'Esto no se puede revertir',
-			icon: 'warning',
-			showCancelButton: true,
-			confirmButtonColor: '#3085d6',
-			cancelButtonColor: '#d33',
-			confirmButtonText: 'Si, borrar',
-			cancelButtonText: 'No, cancelar',
-		}).then((resultado) => {
-			if (resultado.value) {
-				deleteProduct(idProducto, auth.token, (res) => {
-					if(res.ok) {
-						Toast('success', res.msg)
-					} else {
-						Toast('warning', res.msg)
-					}
-				})
-			}
-		})
+	const { token, logged } = auth
+
+	const {
+		product,
+		updateProductList,
+		history
+	} = props
+
+	if (!logged) {
+		history.push('/iniciar-sesion')
 	}
 
-	if (!auth.auth) {
-		props.history.push('/iniciar-sesion')
+	const { _id, nombre, precio, imagen } = product
+
+	const handleDeleteClick = () => {
+		SwalDelete(async () => {
+			try {
+				const {
+					data,
+					response = null
+				} = await deleteProduct(_id, token)
+				if (response) {
+					const { data } = response
+					const { message } = data
+					return Toast('warning', message)
+				}
+				const { message } = data
+				updateProductList(_id)
+				return Toast('success', message)
+			} catch (error) {
+				return Toast('error', 'Ha ocurrido un error')
+			}
+		})
 	}
 
 	return (
@@ -43,7 +55,13 @@ const Producto = (props) => {
 				<p className="nombre">{nombre}</p>
 				<p className="precio">${precio}.-</p>
 				{
-					imagen && <img alt="Imagen de producto" src={imagen} />
+					imagen && 
+					<img
+						alt="Imagen de producto"
+						loading="lazy"
+						title={`Imagen de ${nombre}`}
+						src={`${imagen}?tr=w-400,h-300,bl-30,q-50`}
+					/>
 				}
 			</div>
 			<div className="acciones">
@@ -65,7 +83,7 @@ const Producto = (props) => {
 				<button
 					type="button"
 					className="btn btn-rojo btn-eliminar"
-					onClick={() => eliminarProducto(_id)}
+					onClick={handleDeleteClick}
 				><i className="fas fa-times"></i>
 					Eliminar Producto
 				</button>
@@ -75,7 +93,7 @@ const Producto = (props) => {
 }
 
 Producto.propTypes = {
-	producto: PropTypes.object.isRequired
+	product: PropTypes.object.isRequired
 }
 
 export default withRouter(Producto)

@@ -1,38 +1,70 @@
-import React, { useContext, useEffect, useState } from 'react'
+import {
+	useCallback,
+	useContext,
+	useEffect,
+	useState
+} from 'react'
 import { Link, withRouter } from 'react-router-dom'
-import Toast from '../../helpers/Toast'
-import Cliente from './Cliente'
 import { CRMContext } from '../../context/CRMContext'
-import { consultarClientelaDeApi } from './handleCliente'
 import Resultados from '../helpers/Resultados'
 import { AddAnimClass } from '../../helpers/AddAnimateClass'
+import { Toast } from '../../helpers/SweetAlert'
+import Cliente from './Cliente'
+import { findClients } from './handleClients'
 
+/**
+ * Componente para mostrar a los clientes
+ *
+ * @param {object} props - component props
+*/
 const Clientes = (props) => {
-	const [clientes, guardarClientes] = useState([])
-	const [auth] = useContext(CRMContext)
+	const [ auth ] = useContext(CRMContext)
+
+	const { token, logged } = auth
+
+	const { history } = props
+
+	if (!logged) {
+		history.push('/iniciar-sesion')
+	}
+
+	const [ clients, setClients ] = useState([])
+
+	const handleClientsData = useCallback(async() => {
+		try {
+			const {
+				data,
+				response = null
+			} = await findClients(token)
+			if (response) {
+				const { data } = response
+				const { message } = data
+				return Toast('warning', message)
+			}
+			const { details } = data
+			const { clients } = details
+			setClients(clients)
+		} catch (error) {
+			return Toast('error', 'Ha ocurrido un error')
+		}
+	}, [token])
+
+	const updateClientList = (id) => {
+		setClients(prevState => {
+			return prevState.filter(
+				client => client._id !== id
+			)
+		})
+	}
 
 	useEffect(() => {
-		if (auth.token !== '') {
-			consultarClientelaDeApi('', auth.token, (res) => {
-				if (res.ok) {
-					guardarClientes(res.data)
-				} else {
-					Toast('warning', res.msg)
-				}
-			})
-		} else {
-			props.history.push('/iniciar-sesion')
-		}
-	}, [auth.token, props.history])
-
-	if (!auth.auth) {
-		props.history.push('/iniciar-sesion')
-	}
+		handleClientsData()
+	}, [handleClientsData])
 
 	return (
 		<div className={AddAnimClass('fadeInRight')}>
 			<h2>
-				Clientes <Resultados len={clientes.length} />
+				Clientes <Resultados len={clients.length} />
 			</h2>
 			<Link 
 				className="btn btn-verde nvo-cliente" 
@@ -41,11 +73,17 @@ const Clientes = (props) => {
 				Nuevo Cliente
 			</Link>
 			{
-				clientes.length > 0 ? 
-					<ul className={AddAnimClass('fadeInUp') + "listado-clientes"}>
+				clients.length > 0 ? 
+					<ul
+						className={AddAnimClass('fadeInUp') + "listado-clientes"}
+					>
 						{
-							clientes.map((cliente) => (
-								<Cliente key={cliente._id} cliente={cliente} />
+							clients.map((client) => (
+								<Cliente
+									key={client._id}
+									client={client}
+									updateClientList={updateClientList}
+								/>
 							))
 						}
 					</ul>

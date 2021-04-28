@@ -1,28 +1,35 @@
-import React, { useContext } from 'react'
+import { useContext } from 'react'
 import { withRouter } from 'react-router-dom'
-import Toast from '../../helpers/Toast'
 import { CRMContext } from '../../context/CRMContext'
 
+/**
+ * Componente que muestra una cabecera
+ * 
+ * @param {object} props - component props
+*/
 const Header = (props) => {
-	const [ auth, guardarAuth ] = useContext(CRMContext)
-    
+	const [ auth, setAuth ] = useContext(CRMContext)
+
+	const { logged } = auth
+
+	const { history } = props
+
 	const cerrarSesion = () => {
-		guardarAuth({
-			token: '',
-			auth: false
-		})
 		localStorage.removeItem('token')
-		Toast('success', 'Sesión cerrada. Vuelve cuando quieras!')
-		props.history.push('/iniciar-sesion')
+		setAuth({
+			token: null,
+			logged: false
+		})
+		history.push('/iniciar-sesion')
 	}
-    
+
 	return (
 		<header className="barra">
 			<div className="contenedor">
 				<div className="contenido-barra">
 				  <h1>CRM - Administrador de Clientes</h1>
 			    {
-						auth.auth && (
+						logged && (
 							<button 
 							  type="button" 
 							  className="btn btn-rojo"

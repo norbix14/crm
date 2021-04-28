@@ -1,8 +1,8 @@
-# CRM CLIENTE
+# CRM
 
 Administración de clientes en React
 
-Consume la **[API](https://github.com/norbix14/crmapinode)** en **`Node`**
+Consume la **[API](https://github.com/norbix14/crmapi)** en **Node**
 
 ## Snapshots
 
@@ -20,22 +20,23 @@ Consume la **[API](https://github.com/norbix14/crmapinode)** en **`Node`**
 
 Clonar repositorio
 
-**`git clone <repository> --branch <dev> <directory>`**
+		git clone <repository>
 
 Instalar las dependencias necesarias
 
-**`npm i`**
+		npm i
 
-Ejecutar **[App](http://localhost:3000)** en modo de desarrollo
+Ejecutar app en modo de desarrollo
 
-**`npm start`**
+		npm start
 
-Crear **`build`** de producción
+Crear **build** de producción
 
-**`npm run build`**
+		npm run build
 
 ## Elementos necesarios
 
-**Url de la API**
+**Variables de entorno en un archivo `.env`**
 
+		# Url de la API
 		REACT_APP_BACKEND_URL=""

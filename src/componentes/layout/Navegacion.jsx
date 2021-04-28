@@ -1,11 +1,16 @@
-import React, { useContext } from 'react'
+import { useContext } from 'react'
 import { Link } from 'react-router-dom'
 import { CRMContext } from '../../context/CRMContext'
 
+/**
+ * Componente que muestra un menu de navegacion
+*/
 const Navegacion = () => {
   const [ auth ] = useContext(CRMContext)
+
+  const { logged } = auth
     
-  if(!auth.auth) return null
+  if(!logged) return null
     
 	return (
 		<aside className="sidebar col-3">

@@ -1,56 +1,67 @@
-import React, { useContext, useState } from 'react'
+import { useContext } from 'react'
 import { withRouter } from 'react-router-dom'
-import Toast from '../../helpers/Toast'
-import { validateFields } from '../../helpers/Validator'
 import { CRMContext } from '../../context/CRMContext'
-import { addCliente } from './handleCliente'
+import useHandlerInputChange from '../../hooks/useHandlerInputChange'
+import { Toast } from '../../helpers/SweetAlert'
 import FormCliente from './FormCliente'
+import { addClient } from './handleClients'
 
+/**
+ * Componente para agregar un nuevo cliente
+ * 
+ * @param {object} props - component props
+*/
 const NuevoCliente = (props) => {
-	const [auth] = useContext(CRMContext)
-	const [cliente, guardarCliente] = useState({
+	const [ auth ] = useContext(CRMContext)
+
+	const { token, logged } = auth
+
+	const { history } = props
+
+	if (!logged) {
+		history.push('/iniciar-sesion')
+	}
+
+	const initialState = {
 		nombre: '',
 		apellido: '',
 		empresa: '',
 		email: '',
-		telefono: '',
-	})
-
-	const handleChange = (e) => {
-		guardarCliente({
-			...cliente,
-			[e.target.name]: e.target.value,
-		})
+		telefono: ''
 	}
 
-	const handleSubmit = (e) => {
+	const [
+		client,
+		handleInputChange
+	] = useHandlerInputChange(initialState)
+
+	const handleSubmit = async (e) => {
 		e.preventDefault()
-		const passed = validateFields(cliente)
-		if(passed.valid) {
-			addCliente(cliente, auth.token, (res) => {
-				if (res.ok) {
-					Toast('success', res.msg)
-					props.history.push('/clientes')
-				} else {
-					Toast('warning', res.msg)
-				}
-			})
-		} else {
-			return Toast('warning', passed.msg)
+		try {
+			const {
+				data,
+				response = null
+			} = await addClient(client, token)
+			if (response) {
+				const { data } = response
+				const { message } = data
+				return Toast('warning', message)
+			}
+			const { message } = data
+			Toast('success', message)
+			history.push('/clientes')
+		} catch (error) {
+			return Toast('error', 'Ha ocurrido un error')
 		}
-	}
-
-	if (!auth.auth) {
-		props.history.push('/iniciar-sesion')
 	}
 
 	return (
 		<FormCliente 
 			action="Agregar cliente"
-			titulo="Dar de alta a un nuevo cliente"
-			cliente={cliente}
+			title="Dar de alta a un nuevo cliente"
+			client={client}
 			handleSubmit={handleSubmit}
-			handleChange={handleChange}
+			handleInputChange={handleInputChange}
 		/>
 	)
 }
