@@ -4,7 +4,7 @@ import axios from 'axios'
  * This is an instance of `axios`
  * 
  * @example
- * const { data } = await AxiosRequest({
+ * const { status, data } = await AxiosRequest({
  * 	url: '/api/users',
  * 	method: 'GET',
  * 	data: {},
@@ -15,7 +15,7 @@ import axios from 'axios'
  * 
 */
 const AxiosRequest = axios.create({
-	baseURL: process.env.REACT_APP_BACKEND_URL,
+	baseURL: 'https://desolate-ocean-01790.herokuapp.com',
 	timeout: 10000
 })
 

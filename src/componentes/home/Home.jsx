@@ -1,22 +1,20 @@
 import { useContext } from 'react'
-import { withRouter } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { CRMContext } from '../../context/CRMContext'
 import { AddAnimClass } from '../../helpers/AddAnimateClass'
 
 /**
  * Componente para mostrar una pantalla de bienvenida
- * 
+ *
  * @param {object} props - component props
-*/
-const Home = (props) => {
-  const [ auth ] = useContext(CRMContext)
+ */
+const Home = () => {
+  const [auth] = useContext(CRMContext)
 
   const { logged } = auth
 
-  const { history } = props
-
-  if(!logged) {
-    history.push('/iniciar-sesion')
+  if (!logged) {
+    return <Navigate to='/iniciar-sesion' />
   }
 
   return (
@@ -27,4 +25,4 @@ const Home = (props) => {
   )
 }
 
-export default withRouter(Home)
+export default Home

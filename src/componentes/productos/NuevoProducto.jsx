@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import { withRouter } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { CRMContext } from '../../context/CRMContext'
 import useHandlerInputChange from '../../hooks/useHandlerInputChange'
 import { Toast } from '../../helpers/SweetAlert'
@@ -8,36 +8,25 @@ import { addProduct } from './handleProducts'
 
 /**
  * Componente para agregar un nuevo producto
- * 
+ *
  * @param {object} props - component props
-*/
-const NuevoProducto = (props) => {
-  const [ auth ] = useContext(CRMContext)
+ */
+const NuevoProducto = () => {
+  const [auth] = useContext(CRMContext)
+  const navigate = useNavigate()
 
   const { token, logged } = auth
 
-  const { history } = props
-
-  if (!logged) {
-    history.push('/iniciar-sesion')
-  }
-
   const initialState = {
     nombre: '',
-    precio: ''
+    precio: '',
   }
 
-  const [
-    product,
-    handleInputChange
-  ] = useHandlerInputChange(initialState)
+  const [product, handleInputChange] = useHandlerInputChange(initialState)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const {
-      data,
-      response = null
-    } = await addProduct(product, token)
+    const { data, response = null } = await addProduct(product, token)
     if (response) {
       const { data } = response
       const { message } = data
@@ -45,7 +34,11 @@ const NuevoProducto = (props) => {
     }
     const { message } = data
     Toast('success', message)
-    history.push('/productos')
+    navigate('/productos')
+  }
+
+  if (!logged) {
+    return <Navigate to="/iniciar-sesion" />
   }
 
   return (
@@ -59,4 +52,4 @@ const NuevoProducto = (props) => {
   )
 }
 
-export default withRouter(NuevoProducto)
+export default NuevoProducto

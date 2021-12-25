@@ -1,19 +1,15 @@
-# CRM
+# [CRM](https://simple-crm-react.netlify.app)
 
-Administración de clientes en React
+## Administración de clientes en React
 
-Consume la **[API](https://github.com/norbix14/crmapi)** en **Node**
+## Consume la **[API](https://github.com/norbix14/crmapi)** en **Node**
 
-## Snapshots
+## Screenshots
 
 ![Login](/snapshots/login.png "Login")
-
 ![Home](/snapshots/home.png "Inicio")
-
 ![Clients](/snapshots/clients.png "Clientes")
-
 ![Products](/snapshots/products.png "Productos")
-
 ![Orders](/snapshots/orders.png "Pedidos")
 
 ## Pasos
@@ -33,10 +29,3 @@ Ejecutar app en modo de desarrollo
 Crear **build** de producción
 
 		npm run build
-
-## Elementos necesarios
-
-**Variables de entorno en un archivo `.env`**
-
-		# Url de la API
-		REACT_APP_BACKEND_URL=""

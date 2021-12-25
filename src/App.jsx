@@ -1,8 +1,8 @@
 import { useContext } from 'react'
 import {
-  BrowserRouter as Router,
-  Route,
-  Switch
+  BrowserRouter,
+  Routes,
+  Route
 } from 'react-router-dom'
 
 import Header from './componentes/layout/Header'
@@ -23,7 +23,7 @@ import NuevoProducto from './componentes/productos/NuevoProducto'
 import ImagenProducto from './componentes/productos/ImagenProducto'
 
 import Login from './componentes/auth/Login'
-/*import CrearCuenta from './componentes/auth/CrearCuenta'*/
+import CrearCuenta from './componentes/auth/CrearCuenta'
 
 import { CRMContext, CRMProvider } from './context/CRMContext'
 
@@ -34,38 +34,38 @@ const App = () => {
   const [ auth, setAuth ] = useContext(CRMContext)
 
   return (
-    <Router>
+    <BrowserRouter>
       <>
         <CRMProvider value={[ auth, setAuth ]}>
           <Header />
           <div className="grid contenedor contenido-principal">
             <Navegacion />
             <main className="caja-contenido col-9">
-              <Switch>
-                <Route exact path="/" component={Home} />
+              <Routes>
+                <Route exact path="/" element={<Home />} />
 
-                <Route exact path="/clientes" component={Clientes} />
-                <Route exact path="/clientes/nuevo" component={NuevoCliente} />
-                <Route exact path="/clientes/editar/:id" component={EditarCliente} />
+                <Route exact path="/clientes" element={<Clientes />} />
+                <Route exact path="/clientes/nuevo" element={<NuevoCliente />} />
+                <Route exact path="/clientes/editar/:id" element={<EditarCliente />} />
 
-                <Route exact path="/pedidos" component={Pedidos} />
-                <Route exact path="/pedidos/nuevo/:id" component={NuevoPedido} />
+                <Route exact path="/pedidos" element={<Pedidos />} />
+                <Route exact path="/pedidos/nuevo/:id" element={<NuevoPedido />} />
 
-                <Route exact path="/productos" component={Productos} />
-                <Route exact path="/productos/nuevo" component={NuevoProducto} />
-                <Route exact path="/productos/imagen/:id" component={ImagenProducto} />
-                <Route exact path="/productos/editar/:id" component={EditarProducto} />
+                <Route exact path="/productos" element={<Productos />} />
+                <Route exact path="/productos/nuevo" element={<NuevoProducto />} />
+                <Route exact path="/productos/imagen/:id" element={<ImagenProducto />} />
+                <Route exact path="/productos/editar/:id" element={<EditarProducto />} />
 
-                <Route exact path="/iniciar-sesion" component={Login} />
-                {/*<Route exact path="/crear-cuenta" component={CrearCuenta} />*/}
+                <Route exact path="/iniciar-sesion" element={<Login />} />
+                <Route exact path="/crear-cuenta" element={<CrearCuenta />} />
 
-                <Route component={Home} />
-              </Switch>
+                <Route path="*" element={<Home />} />
+              </Routes>
             </main>
           </div>
         </CRMProvider>
       </>
-    </Router>
+    </BrowserRouter>
   )
 }
 

@@ -1,16 +1,8 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from 'react'
-import { withRouter } from 'react-router-dom'
+import { useCallback, useContext, useEffect, useState } from 'react'
+import { Navigate, useParams } from 'react-router-dom'
 import { CRMContext } from '../../context/CRMContext'
 import { Toast } from '../../helpers/SweetAlert'
-import {
-  calculateTotal,
-  checkRepeated
-} from '../../helpers/OrderUtils'
+import { calculateTotal, checkRepeated } from '../../helpers/OrderUtils'
 import FormBuscarProducto from './FormBuscarProducto'
 import FormCantidadProducto from './FormCantidadProducto'
 import FichaCliente from './FichaCliente'
@@ -19,25 +11,18 @@ import { findClientData } from './handleOrders'
 
 /**
  * Componente para agregar un nuevo pedido
- * 
+ *
  * @param {object} props - component props
-*/
-const NuevoPedido = (props) => {
-  const [ auth ] = useContext(CRMContext)
+ */
+const NuevoPedido = () => {
+  const [auth] = useContext(CRMContext)
+  const { id } = useParams()
 
   const { token, logged } = auth
 
-  const { history, match } = props
-
-  if (!logged) {
-    history.push('/iniciar-sesion')
-  }
-
-  const { id } = match.params
-
-  const [ total, setTotal ] = useState(0)
-  const [ client, setClient ] = useState({})
-  const [ products, setProducts ] = useState([])
+  const [total, setTotal] = useState(0)
+  const [client, setClient] = useState({})
+  const [products, setProducts] = useState([])
 
   const updateTotal = useCallback(() => {
     const newTotal = calculateTotal(products)
@@ -46,10 +31,7 @@ const NuevoPedido = (props) => {
 
   const findClient = useCallback(async () => {
     try {
-      const {
-        data,
-        response = null
-      } = await findClientData(id, token)
+      const { data, response = null } = await findClientData(id, token)
       if (response) {
         const { data } = response
         const { message } = data
@@ -64,12 +46,9 @@ const NuevoPedido = (props) => {
   }, [id, token])
 
   const addProductToList = (product) => {
-    setProducts(prevState => {
+    setProducts((prevState) => {
       if (prevState.length <= 0) {
-        return [
-          ...prevState,
-          product
-        ]
+        return [...prevState, product]
       }
       return checkRepeated(prevState, product)
     })
@@ -83,28 +62,24 @@ const NuevoPedido = (props) => {
     updateTotal()
   }, [updateTotal])
 
+  if (!logged) {
+    return <Navigate to="/iniciar-sesion" />
+  }
+
   return (
     <>
       <h2>Nuevo pedido</h2>
-      <FichaCliente
-        client={client}
-       />
-      <FormBuscarProducto
-        token={token}
-        addProductToList={addProductToList}
-      />
+      <FichaCliente client={client} />
+      <FormBuscarProducto token={token} addProductToList={addProductToList} />
       <ul className="resumen">
-        {
-          products.length > 0 && (
-            products.map((product) => (
-              <FormCantidadProducto
-                key={product._id}
-                product={product}
-                setProducts={setProducts}
-              />
-            ))
-          )
-        }
+        {products.length > 0 &&
+          products.map((product) => (
+            <FormCantidadProducto
+              key={product._id}
+              product={product}
+              setProducts={setProducts}
+            />
+          ))}
       </ul>
       <p className="total">
         Total: <span>${total}.-</span>
@@ -119,4 +94,4 @@ const NuevoPedido = (props) => {
   )
 }
 
-export default withRouter(NuevoPedido)
+export default NuevoPedido

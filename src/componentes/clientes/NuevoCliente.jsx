@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import { withRouter } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { CRMContext } from '../../context/CRMContext'
 import useHandlerInputChange from '../../hooks/useHandlerInputChange'
 import { Toast } from '../../helpers/SweetAlert'
@@ -8,62 +8,55 @@ import { addClient } from './handleClients'
 
 /**
  * Componente para agregar un nuevo cliente
- * 
+ *
  * @param {object} props - component props
-*/
-const NuevoCliente = (props) => {
-	const [ auth ] = useContext(CRMContext)
+ */
+const NuevoCliente = () => {
+  const [auth] = useContext(CRMContext)
+  const navigate = useNavigate()
 
-	const { token, logged } = auth
+  const { token, logged } = auth
 
-	const { history } = props
+  const initialState = {
+    nombre: '',
+    apellido: '',
+    empresa: '',
+    email: '',
+    telefono: '',
+  }
 
-	if (!logged) {
-		history.push('/iniciar-sesion')
-	}
+  const [client, handleInputChange] = useHandlerInputChange(initialState)
 
-	const initialState = {
-		nombre: '',
-		apellido: '',
-		empresa: '',
-		email: '',
-		telefono: ''
-	}
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      const { data, response = null } = await addClient(client, token)
+      if (response) {
+        const { data } = response
+        const { message } = data
+        return Toast('warning', message)
+      }
+      const { message } = data
+      Toast('success', message)
+      navigate('/clientes')
+    } catch (error) {
+      return Toast('error', 'Ha ocurrido un error')
+    }
+  }
 
-	const [
-		client,
-		handleInputChange
-	] = useHandlerInputChange(initialState)
+  if (!logged) {
+    return <Navigate to="/iniciar-sesion" />
+  }
 
-	const handleSubmit = async (e) => {
-		e.preventDefault()
-		try {
-			const {
-				data,
-				response = null
-			} = await addClient(client, token)
-			if (response) {
-				const { data } = response
-				const { message } = data
-				return Toast('warning', message)
-			}
-			const { message } = data
-			Toast('success', message)
-			history.push('/clientes')
-		} catch (error) {
-			return Toast('error', 'Ha ocurrido un error')
-		}
-	}
-
-	return (
-		<FormCliente 
-			action="Agregar cliente"
-			title="Dar de alta a un nuevo cliente"
-			client={client}
-			handleSubmit={handleSubmit}
-			handleInputChange={handleInputChange}
-		/>
-	)
+  return (
+    <FormCliente
+      action="Agregar cliente"
+      title="Dar de alta a un nuevo cliente"
+      client={client}
+      handleSubmit={handleSubmit}
+      handleInputChange={handleInputChange}
+    />
+  )
 }
 
-export default withRouter(NuevoCliente)
+export default NuevoCliente

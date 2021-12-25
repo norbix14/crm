@@ -1,60 +1,43 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useState
-} from 'react'
-import { withRouter } from 'react-router-dom'
+import { useCallback, useContext, useEffect, useState } from 'react'
+import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { CRMContext } from '../../context/CRMContext'
 import { Toast } from '../../helpers/SweetAlert'
 import FormProducto from './FormProducto'
-import {
-  editProduct,
-  findProduct
-} from './handleProducts'
+import { editProduct, findProduct } from './handleProducts'
 
 /**
  * Componente para editar un producto
- * 
+ *
  * @param {object} props - component props
-*/
-const EditarProducto = (props) => {
-  const [ auth ] = useContext(CRMContext)
+ */
+const EditarProducto = () => {
+  const [auth] = useContext(CRMContext)
+  const navigate = useNavigate()
+  const { id } = useParams()
 
   const { token, logged } = auth
 
-  const { history, match } = props
-
-  if (!logged) {
-    history.push('/iniciar-sesion')
-  }
-
-  const { id } = match.params
-
   const initialState = {
     nombre: '',
-    precio: ''
+    precio: '',
   }
 
-  const [ product, setProduct ] = useState(initialState)
+  const [product, setProduct] = useState(initialState)
 
   const handleInputChange = (e) => {
     const { target } = e
     const { name, value } = target
-    setProduct(prevState => {
+    setProduct((prevState) => {
       return {
         ...prevState,
-        [name]: value
+        [name]: value,
       }
     })
   }
 
   const handleProductData = useCallback(async () => {
     try {
-      const {
-        data,
-        response = null
-      } = await findProduct(id, token)
+      const { data, response = null } = await findProduct(id, token)
       if (response) {
         const { data } = response
         const { message } = data
@@ -71,10 +54,7 @@ const EditarProducto = (props) => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      const {
-        data,
-        response = null
-      } = await editProduct(id, product, token)
+      const { data, response = null } = await editProduct(id, product, token)
       if (response) {
         const { data } = response
         const { message } = data
@@ -82,7 +62,7 @@ const EditarProducto = (props) => {
       }
       const { message } = data
       Toast('success', message)
-      history.push('/productos')
+      navigate('/productos')
     } catch (error) {
       return Toast('error', 'Ha ocurrido un error')
     }
@@ -91,6 +71,10 @@ const EditarProducto = (props) => {
   useEffect(() => {
     handleProductData()
   }, [handleProductData])
+
+  if (!logged) {
+    return <Navigate to="/iniciar-sesion" />
+  }
 
   return (
     <FormProducto
@@ -103,4 +87,4 @@ const EditarProducto = (props) => {
   )
 }
 
-export default withRouter(EditarProducto)
+export default EditarProducto

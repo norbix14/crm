@@ -1,9 +1,5 @@
-import {
-	useCallback,
-	useContext,
-	useEffect
-} from 'react'
-import { withRouter } from 'react-router-dom'
+import { useCallback, useContext, useEffect } from 'react'
+import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { CRMContext } from '../../context/CRMContext'
 import useHandlerInputChange from '../../hooks/useHandlerInputChange'
 import { Toast } from '../../helpers/SweetAlert'
@@ -14,87 +10,76 @@ import { editClient, findClient } from './handleClients'
  * Componente para editar un cliente
  *
  * @param {object} props - component props
-*/
-const EditarCliente = (props) => {
-	const [ auth ] = useContext(CRMContext)
+ */
+const EditarCliente = () => {
+  const [auth] = useContext(CRMContext)
+  const navigate = useNavigate()
+  const { id } = useParams()
 
-	const { token, logged } = auth
+  const { token, logged } = auth
 
-	const { history, match } = props
+  const initialState = {
+    nombre: '',
+    apellido: '',
+    empresa: '',
+    email: '',
+    telefono: '',
+  }
 
-	if (!logged) {
-		history.push('/iniciar-sesion')
-	}
+  const [client, handleInputChange, setClient] =
+    useHandlerInputChange(initialState)
 
-	const { id } = match.params
+  const handleClientData = useCallback(async () => {
+    try {
+      const { data, response = null } = await findClient(id, token)
+      if (response) {
+        const { data } = response
+        const { message } = data
+        return Toast('warning', message)
+      }
+      const { details } = data
+      const { client } = details
+      setClient(client)
+    } catch (error) {
+      return Toast('error', 'Ha ocurrido un error')
+    }
+  }, [id, token, setClient])
 
-	const initialState = {
-		nombre: '',
-		apellido: '',
-		empresa: '',
-		email: '',
-		telefono: ''
-	}
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      const { _id } = client
+      const { data, response = null } = await editClient(_id, client, token)
+      if (response) {
+        const { data } = response
+        const { message } = data
+        return Toast('warning', message)
+      }
+      const { message } = data
+      Toast('success', message)
+      navigate('/clientes')
+    } catch (error) {
+      return Toast('error', 'Ha ocurrido un error')
+    }
+  }
 
-	const [
-		client,
-		handleInputChange,
-		setClient
-	] = useHandlerInputChange(initialState)
+  useEffect(() => {
+    handleClientData()
+  }, [handleClientData])
 
-	const handleClientData = useCallback(async () => {
-		try {
-			const {
-				data,
-				response = null
-			} = await findClient(id, token)
-			if (response) {
-				const { data } = response
-				const { message } = data
-				return Toast('warning', message)
-			}
-			const { details } = data
-			const { client } = details
-			setClient(client)
-		} catch (error) {
-			return Toast('error', 'Ha ocurrido un error')
-		}
-	}, [id, token, setClient])
+  if (!logged) {
+    return <Navigate to="/iniciar-sesion" />
+  }
 
-	const handleSubmit = async (e) => {
-		e.preventDefault()
-		try {
-			const { _id } = client
-			const {
-				data,
-				response = null
-			} = await editClient(_id, client, token)
-			if (response) {
-				const { data } = response
-				const { message } = data
-				return Toast('warning', message)
-			}
-			const { message } = data
-			Toast('success', message)
-			history.push('/clientes')
-		} catch (error) {
-			return Toast('error', 'Ha ocurrido un error')
-		}
-	}
-
-	useEffect(() => {
-		handleClientData()
-	}, [handleClientData])
-
-	return (
-	  <FormCliente 
-			action="Editar cliente"
-			title="Editar datos del cliente"
-			client={client}
-			handleInputChange={handleInputChange}
-			handleSubmit={handleSubmit}
-		/>
-	)
+  return (
+    <FormCliente
+      action="Editar cliente"
+      title="Editar datos del cliente"
+      client={client}
+      handleInputChange={handleInputChange}
+      handleSubmit={handleSubmit}
+    />
+  )
 }
 
-export default withRouter(EditarCliente)
+export default EditarCliente

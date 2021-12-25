@@ -1,10 +1,5 @@
-import {
-	useCallback,
-	useContext, 
-	useState, 
-	useEffect
-} from 'react'
-import { withRouter } from 'react-router-dom'
+import { useCallback, useContext, useState, useEffect } from 'react'
+import { Navigate } from 'react-router-dom'
 import { CRMContext } from '../../context/CRMContext'
 import { Toast } from '../../helpers/SweetAlert'
 import { AddAnimClass } from '../../helpers/AddAnimateClass'
@@ -14,77 +9,66 @@ import { findOrders } from './handleOrders'
 
 /**
  * Componente que muestra todos los pedidos realizados
- * 
+ *
  * @param {object} props - component props
-*/
-const Pedidos = (props) => {
-	const [ auth ] = useContext(CRMContext)
+ */
+const Pedidos = () => {
+  const [auth] = useContext(CRMContext)
 
-	const { token, logged } = auth
+  const { token, logged } = auth
 
-	const { history } = props
+  const [orders, setOrders] = useState([])
 
-	if (!logged) {
-		history.push('/iniciar-sesion')
-	}
+  const getOrders = useCallback(async () => {
+    try {
+      const { data, response = null } = await findOrders(token)
+      if (response) {
+        const { data } = response
+        const { message } = data
+        return Toast('warning', message)
+      }
+      const { details } = data
+      const { orders } = details
+      setOrders(orders)
+    } catch (error) {
+      return Toast('error', 'Ha ocurrido un error')
+    }
+  }, [token])
 
-	const [ orders, setOrders ] = useState([])
+  const updateOrderList = (id) => {
+    setOrders((prevState) => {
+      return prevState.filter((prod) => prod._id !== id)
+    })
+  }
 
-	const getOrders = useCallback(async () => {
-		try {
-			const {
-				data,
-				response = null
-			} = await findOrders(token)
-			if (response) {
-				const { data } = response
-				const { message } = data
-				return Toast('warning', message)
-			}
-			const { details } = data
-			const { orders } = details
-			setOrders(orders)
-		} catch (error) {
-			return Toast('error', 'Ha ocurrido un error')
-		}
-	}, [token])
+  useEffect(() => {
+    getOrders()
+  }, [getOrders])
 
-	const updateOrderList = (id) => {
-		setOrders(prevState => {
-			return prevState.filter(
-				prod => prod._id !== id
-			)
-		})
-	}
+  if (!logged) {
+    return <Navigate to="/iniciar-sesion" />
+  }
 
-	useEffect(() => {
-		getOrders()
-	}, [getOrders])
-
-	return (
-		<div className={AddAnimClass('fadeInRight')}>
-			<h2>
-				Pedidos <Resultados len={orders.length} />
-			</h2>
-			{
-				orders.length > 0 ?
-					<ul
-						className={AddAnimClass('fadeInUp') + "listado-pedidos"}
-					>
-						{
-							orders.map((order) => (
-								<Pedido
-									key={order._id}
-									order={order}
-									updateOrderList={updateOrderList}
-								/>
-							))
-						}
-					</ul>
-				: <h2>Aún no hay pedidos realizados</h2>
-			}
-		</div>
-	)
+  return (
+    <div className={AddAnimClass('fadeInRight')}>
+      <h2>
+        Pedidos <Resultados len={orders.length} />
+      </h2>
+      {orders.length > 0 ? (
+        <ul className={AddAnimClass('fadeInUp') + 'listado-pedidos'}>
+          {orders.map((order) => (
+            <Pedido
+              key={order._id}
+              order={order}
+              updateOrderList={updateOrderList}
+            />
+          ))}
+        </ul>
+      ) : (
+        <h2>Aún no hay pedidos realizados</h2>
+      )}
+    </div>
+  )
 }
 
-export default withRouter(Pedidos)
+export default Pedidos
